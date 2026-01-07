@@ -21,16 +21,149 @@ The key insight: **Pieces speak, but the Narrator tells the story.**
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────┐
-│                   NARRATOR SYNTHESIS                     │
+│           NARRATOR SYNTHESIS (Genre-Specific)            │
 │                                                          │
-│   Takes: Piece quotes + Move data + Game outcome         │
-│   Produces: Dramatic narrative with embedded quotes      │
+│   User selects genre → Narrator personality chosen       │
+│   Narrator weaves ALL quotes into cohesive story         │
+│   Adds own observations, drama, and storytelling         │
 │                                                          │
+│   EPIC FANTASY (The Chronicler):                         │
 │   "The knight charged forward, crying 'For the kingdom!' │
 │    But Queen Nyx only smiled. 'You dare challenge me?'   │
 │    In three moves, she would prove why none should."     │
 │                                                          │
+│   NOIR DETECTIVE (The Gumshoe):                          │
+│   "The knight made his move. Brave kid. 'For the         │
+│    kingdom,' he said. The Queen's lips curled. 'You      │
+│    dare?' Three moves later, he was off the board."      │
+│                                                          │
 └─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Genre System: Narrator Personalities
+
+Each genre has multiple potential narrators with distinct voices. The LLM receives
+ALL piece quotes and weaves them into a story that matches the narrator's style.
+
+### Genre: Epic Fantasy
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Chronicler** | Ancient, reverent, sweeping | "In the age of kings, when armies clashed upon fields of sixty-four squares..." |
+| **The Bard** | Lyrical, dramatic, musical | "Sing, O muse, of the knight who dared challenge darkness itself!" |
+| **The War Scribe** | Military, tactical, observational | "The western flank collapsed at move 23. The knight's sacrifice was... unexpected." |
+
+### Genre: Noir/Hardboiled
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Gumshoe** | Cynical, world-weary, wry | "The Queen was dead. Cornered on h7 with nowhere to run. I'd seen it coming for twelve moves." |
+| **The Reporter** | Urgent, punchy, sensational | "CHECKMATE IN THE THIRD! Dark King Falls in 34-Move Thriller!" |
+| **The Witness** | Nervous, observational, unreliable | "I saw the whole thing. The knight, he just... jumped. Right into danger. Who does that?" |
+
+### Genre: Sports Commentary
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Play-by-Play** | Excited, immediate, energetic | "AND THE KNIGHT TAKES! What a move! The crowd goes wild!" |
+| **The Color Commentator** | Analytical, contextual, seasoned | "You see, Jim, what makes this sacrifice brilliant is the diagonal it opens..." |
+| **The Podcast Host** | Conversational, enthusiastic, modern | "Okay so like, this game? Absolutely bonkers. Let me break it down for you." |
+
+### Genre: Gothic Horror
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Archivist** | Dusty, ominous, discovering | "I found these records in the basement. The game they describe... it should not have been possible." |
+| **The Survivor** | Traumatized, fragmented, warning | "Don't play at midnight. I did once. The pieces... they spoke to me." |
+| **The Entity** | Cold, alien, observing | "We have watched this ritual for centuries. The humans call it 'chess.' We call it... selection." |
+
+### Genre: Comedy/Satire
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Bumbling Announcer** | Confused, enthusiastic, wrong | "And the... horsey? The horsey takes the castle! Wait, can it do that?" |
+| **The Sarcastic Observer** | Dry, cutting, intellectual | "Ah yes, another knight sacrifice. How terribly original." |
+| **The Pieces' Therapist** | Sympathetic, clinical, absurd | "The pawn expressed feelings of inadequacy today. We're making progress." |
+
+### Genre: Documentary
+
+| Narrator | Voice | Style |
+|----------|-------|-------|
+| **The Nature Narrator** (Attenborough-style) | Gentle, wondering, scientific | "Here we observe the knight in its natural habitat. Notice how it approaches in an L-shape..." |
+| **The Historian** | Academic, contextual, thorough | "This opening, first recorded in 1847, would prove decisive in the moves that followed." |
+| **The True Crime Host** | Serious, building tension, revelatory | "But what no one knew... was that the Bishop had been planning this for seven moves." |
+
+---
+
+## Narrator Selection Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    POST-GAME SCREEN                      │
+│                                                          │
+│  Generate Story As:                                      │
+│                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │ ⚔️ Epic     │  │ 🔍 Noir     │  │ 🎙️ Sports   │      │
+│  │   Fantasy   │  │             │  │             │      │
+│  └─────────────┘  └─────────────┘  └─────────────┘      │
+│                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │ 🦇 Gothic   │  │ 😂 Comedy   │  │ 🎬 Docu-    │      │
+│  │   Horror    │  │             │  │   mentary   │      │
+│  └─────────────┘  └─────────────┘  └─────────────┘      │
+│                                                          │
+│  Selected: Epic Fantasy                                  │
+│  Narrator: [The Chronicler ▼]                           │
+│                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐               │
+│  │ 📖 Full Story   │  │ 🐦 Tweet        │               │
+│  └─────────────────┘  └─────────────────┘               │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Narrator Data Structure
+
+```python
+@dataclass
+class NarratorPersonality:
+    """Defines a narrator's voice and style."""
+
+    id: str                           # "chronicler", "gumshoe", etc.
+    name: str                         # "The Chronicler"
+    genre: str                        # "epic_fantasy", "noir", etc.
+
+    # Voice characteristics
+    voice_description: str            # How they speak
+    vocabulary_hints: list[str]       # Words they favor
+    sentence_style: str               # Short/long, simple/complex
+    emotional_range: str              # Reserved, dramatic, etc.
+
+    # Storytelling approach
+    opening_style: str                # How they begin stories
+    quote_integration: str            # How they weave in piece quotes
+    tension_building: str             # How they create drama
+    ending_style: str                 # How they conclude
+
+    # Example snippets (for few-shot prompting)
+    example_opening: str
+    example_quote_weave: str
+    example_climax: str
+    example_closing: str
+
+# Registry of all narrators
+NARRATORS: dict[str, list[NarratorPersonality]] = {
+    "epic_fantasy": [chronicler, bard, war_scribe],
+    "noir": [gumshoe, reporter, witness],
+    "sports": [play_by_play, color_commentator, podcast_host],
+    "gothic_horror": [archivist, survivor, entity],
+    "comedy": [bumbling_announcer, sarcastic_observer, therapist],
+    "documentary": [nature_narrator, historian, true_crime_host],
+}
 ```
 
 ---
@@ -285,28 +418,420 @@ class NarrativePuzzle:
 | **King's Peril** | King safety, escaping check | King Aldric |
 | **Shadow Tactics** | Traps, defensive resources | Queen Nyx |
 
-### Puzzle Sources
+### Puzzle Sources: Lichess + Flavor System
 
-For MVP, curate puzzles from:
-- Lichess puzzle database (open source, 3M+ puzzles)
-- Add narrative wrapper via LLM generation
-- Tag with appropriate piece narrator based on theme
+**Primary Source**: Lichess puzzle database (open source, 3M+ puzzles)
+**Enhancement**: Wrap each puzzle in narrative "flavors" via LLM generation
+**Future**: Custom-authored puzzles with hand-crafted narratives
+
+### Lichess Integration
+
+```python
+@dataclass
+class LichessPuzzle:
+    """Raw puzzle data from Lichess database."""
+    puzzle_id: str
+    fen: str
+    moves: list[str]           # Solution moves (UCI format)
+    rating: int                # Difficulty rating
+    themes: list[str]          # ["fork", "middlegame", "short"]
+    game_url: str | None       # Source game if available
+
+# Lichess CSV format (puzzles are ~300MB compressed):
+# PuzzleId,FEN,Moves,Rating,RatingDeviation,Popularity,NbPlays,Themes,GameUrl
+#
+# Download from: https://database.lichess.org/#puzzles
+```
+
+### The Flavor System
+
+Flavors are narrative "skins" that transform raw puzzles into story experiences.
+Each flavor has its own narrator voice and thematic framing.
+
+```python
+@dataclass
+class PuzzleFlavor:
+    """A narrative wrapper style for puzzles."""
+
+    id: str                           # "kingdom_siege", "detective_case"
+    name: str                         # "Kingdom Under Siege"
+    genre: str                        # Links to narrator genres
+
+    # Narrative elements
+    setting_description: str          # World/context description
+    narrator_pool: list[str]          # Which narrators can voice this flavor
+    piece_role_map: dict[str, str]    # How pieces are described in this flavor
+
+    # Theme mappings (Lichess theme → flavor narrative)
+    theme_narratives: dict[str, ThemeNarrative]
+
+    # Difficulty framing
+    difficulty_descriptions: dict[str, str]  # Rating range → narrative framing
+
+@dataclass
+class ThemeNarrative:
+    """How a chess theme is narrated in a specific flavor."""
+    lichess_theme: str                # "fork", "backRankMate", etc.
+    narrative_setup: str              # Story framing for this theme
+    piece_narrator: str               # Which piece type narrates
+    success_template: str             # Victory text template
+    failure_template: str             # Retry text template
+```
+
+### Flavor Examples
+
+#### Flavor: Kingdom Under Siege (Epic Fantasy)
+
+```python
+KINGDOM_SIEGE_FLAVOR = PuzzleFlavor(
+    id="kingdom_siege",
+    name="Kingdom Under Siege",
+    genre="epic_fantasy",
+    setting_description="""
+        The Dark Kingdom has invaded. Castle walls crumble.
+        Each puzzle is a battle in the war for survival.
+    """,
+    narrator_pool=["chronicler", "war_scribe"],
+    piece_role_map={
+        "king": "Your Liege",
+        "queen": "The Queen Commander",
+        "rook": "Tower Defenders",
+        "bishop": "Battle Mages",
+        "knight": "Cavalry Champions",
+        "pawn": "Brave Infantry",
+    },
+    theme_narratives={
+        "backRankMate": ThemeNarrative(
+            lichess_theme="backRankMate",
+            narrative_setup="The enemy king cowers behind his walls, thinking himself safe. But the walls themselves are his prison.",
+            piece_narrator="rook",
+            success_template="The walls have fallen! {piece} delivers the killing blow.",
+            failure_template="No—that gives them time to shore up defenses. Look again.",
+        ),
+        "fork": ThemeNarrative(
+            lichess_theme="fork",
+            narrative_setup="Two enemy commanders stand vulnerable. One strike can threaten both.",
+            piece_narrator="knight",
+            success_template="A devastating charge! Both targets scatter, but the damage is done.",
+            failure_template="A wasted charge. Regroup and find where two enemies align.",
+        ),
+        "pin": ThemeNarrative(
+            lichess_theme="pin",
+            narrative_setup="The enemy hides behind their own soldiers. But what protects them... also traps them.",
+            piece_narrator="bishop",
+            success_template="Pinned like insects to a board. They cannot move without losing everything.",
+            failure_template="The pin isn't there. Look for a piece hiding behind another.",
+        ),
+    },
+    difficulty_descriptions={
+        "800-1200": "A skirmish at the border. Trust your instincts.",
+        "1200-1600": "A pitched battle. Think before you strike.",
+        "1600-2000": "A siege of cunning. Every move must be precise.",
+        "2000+": "The Dark Lord's inner sanctum. Only masters survive.",
+    },
+)
+```
+
+#### Flavor: Case Files (Noir Detective)
+
+```python
+CASE_FILES_FLAVOR = PuzzleFlavor(
+    id="case_files",
+    name="The Case Files",
+    genre="noir",
+    setting_description="""
+        The city's dark. The board's darker. Every puzzle is a case.
+        Find the solution before time runs out.
+    """,
+    narrator_pool=["gumshoe", "witness"],
+    piece_role_map={
+        "king": "The Kingpin",
+        "queen": "The Femme Fatale",
+        "rook": "The Muscle",
+        "bishop": "The Fixer",
+        "knight": "The Wildcard",
+        "pawn": "The Fall Guy",
+    },
+    theme_narratives={
+        "backRankMate": ThemeNarrative(
+            lichess_theme="backRankMate",
+            narrative_setup="The Kingpin's holed up in his penthouse. Thinks his bodyguards make him untouchable. They don't.",
+            piece_narrator="rook",
+            success_template="Nowhere to run. The Muscle walks right in. Case closed.",
+            failure_template="Wrong angle. The Kingpin's got an escape route you're missing.",
+        ),
+        "sacrifice": ThemeNarrative(
+            lichess_theme="sacrifice",
+            narrative_setup="Sometimes you gotta give something up to get what you need. The question is: what's worth losing?",
+            piece_narrator="pawn",
+            success_template="The Fall Guy takes the hit. But it cracks the case wide open.",
+            failure_template="That's not a sacrifice—that's just a loss. Think harder.",
+        ),
+    },
+    difficulty_descriptions={
+        "800-1200": "A simple shakedown. Even a rookie could crack it.",
+        "1200-1600": "Getting complicated. Bring your notepad.",
+        "1600-2000": "Cold case territory. The clues don't add up easy.",
+        "2000+": "The perfect crime. Almost.",
+    },
+)
+```
+
+#### Flavor: Nature Documentary
+
+```python
+NATURE_DOC_FLAVOR = PuzzleFlavor(
+    id="nature_documentary",
+    name="Chess in the Wild",
+    genre="documentary",
+    setting_description="""
+        Here we observe the chess pieces in their natural habitat.
+        Watch as predator and prey dance their ancient dance.
+    """,
+    narrator_pool=["nature_narrator"],
+    piece_role_map={
+        "king": "the patriarch",
+        "queen": "the apex predator",
+        "rook": "the territorial guardian",
+        "bishop": "the cunning stalker",
+        "knight": "the unpredictable hunter",
+        "pawn": "the humble forager",
+    },
+    theme_narratives={
+        "fork": ThemeNarrative(
+            lichess_theme="fork",
+            narrative_setup="The knight spots two targets at once. In nature, this is called... opportunistic hunting.",
+            piece_narrator="knight",
+            success_template="Extraordinary. The knight claims both territories in a single bound.",
+            failure_template="The prey escapes. The knight must learn patience.",
+        ),
+        "discoveredAttack": ThemeNarrative(
+            lichess_theme="discoveredAttack",
+            narrative_setup="Watch carefully. One piece moves... revealing another's line of attack. A coordinated strike.",
+            piece_narrator="bishop",
+            success_template="Nature's teamwork at its finest. The discovered attack claims its victim.",
+            failure_template="The coordination failed. Both hunters must align perfectly.",
+        ),
+    },
+    difficulty_descriptions={
+        "800-1200": "A gentle meadow. The patterns here are easy to spot.",
+        "1200-1600": "The deep forest. Danger lurks, but so does opportunity.",
+        "1600-2000": "The treacherous mountains. Only the skilled survive.",
+        "2000+": "The abyssal depths. Mysteries few have witnessed.",
+    },
+)
+
+# Registry of all flavors
+PUZZLE_FLAVORS: dict[str, PuzzleFlavor] = {
+    "kingdom_siege": KINGDOM_SIEGE_FLAVOR,
+    "case_files": CASE_FILES_FLAVOR,
+    "nature_documentary": NATURE_DOC_FLAVOR,
+    # Future flavors...
+    # "sports_highlight": SPORTS_FLAVOR,
+    # "haunted_board": HORROR_FLAVOR,
+    # "comedy_club": COMEDY_FLAVOR,
+}
+```
+
+### Puzzle Generation Pipeline
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Lichess DB     │────▶│  Theme Mapper   │────▶│  Flavor Wrapper │
+│  (raw puzzles)  │     │  (categorize)   │     │  (narrativize)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌─────────────────┐
+                                               │  NarrativePuzzle│
+                                               │  (ready to play)│
+                                               └─────────────────┘
+```
+
+```python
+class PuzzleGenerator:
+    """Transforms raw Lichess puzzles into narrative experiences."""
+
+    def __init__(self, flavor: PuzzleFlavor, llm_client: LLMClient):
+        self.flavor = flavor
+        self.llm = llm_client
+
+    def wrap_puzzle(self, raw: LichessPuzzle) -> NarrativePuzzle:
+        """Add narrative wrapper to a raw puzzle."""
+
+        # Find matching theme narrative
+        primary_theme = self._get_primary_theme(raw.themes)
+        theme_narrative = self.flavor.theme_narratives.get(primary_theme)
+
+        if theme_narrative:
+            # Use pre-defined narrative for known themes
+            return self._build_from_template(raw, theme_narrative)
+        else:
+            # Generate narrative via LLM for unknown themes
+            return self._generate_narrative(raw)
+
+    def _build_from_template(
+        self, raw: LichessPuzzle, theme: ThemeNarrative
+    ) -> NarrativePuzzle:
+        """Build puzzle from pre-defined theme template."""
+        return NarrativePuzzle(
+            fen=raw.fen,
+            solution=raw.moves,
+            themes=raw.themes,
+            difficulty=raw.rating,
+            title=self._generate_title(raw),
+            setup=theme.narrative_setup,
+            piece_speaker=self.flavor.piece_role_map[theme.piece_narrator],
+            piece_quote=theme.narrative_setup,
+            success_text=theme.success_template,
+            failure_text=theme.failure_template,
+        )
+
+    async def _generate_narrative(self, raw: LichessPuzzle) -> NarrativePuzzle:
+        """Use LLM to generate narrative for non-templated themes."""
+        prompt = f"""
+        Generate a narrative wrapper for this chess puzzle in the
+        "{self.flavor.name}" style ({self.flavor.genre} genre).
+
+        Setting: {self.flavor.setting_description}
+
+        Puzzle themes: {raw.themes}
+        Difficulty: {raw.rating}
+
+        Generate:
+        1. A dramatic setup (2-3 sentences)
+        2. A success message (1 sentence)
+        3. A failure/retry message (1 sentence)
+        4. Which piece type should narrate (from: {list(self.flavor.piece_role_map.keys())})
+
+        Match the tone and style of the {self.flavor.genre} genre.
+        """
+        # ... LLM call and parsing
+```
+
+### Future: Custom Puzzle Authoring
+
+Architecture supports hand-crafted puzzles with richer narratives:
+
+```python
+@dataclass
+class CustomPuzzle(NarrativePuzzle):
+    """Hand-authored puzzle with extended narrative."""
+
+    # Extended story elements
+    backstory: str | None             # Longer context
+    character_dialogue: list[str]     # Multi-turn conversation
+    branching_responses: dict         # Different responses for different wrong moves
+    sequel_puzzle_id: str | None      # Chain puzzles into stories
+
+    # Authorship
+    author: str
+    created_date: str
+    is_premium: bool                  # For future monetization
+```
 
 ---
 
 ## Feature 3: Position Analysis
 
+### Stockfish Requirement
+
+**Position Analysis REQUIRES Stockfish to be installed and configured.**
+
+Without engine evaluation, we cannot reliably detect:
+- Blunders vs. reasonable moves
+- Brilliant sacrifices vs. mistakes
+- Turning points in the game
+- What the best move actually was
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ⚠️  STOCKFISH REQUIRED FOR ANALYSIS                    │
+│                                                          │
+│  Position Analysis needs Stockfish to evaluate moves.    │
+│                                                          │
+│  Install Stockfish:                                      │
+│  • macOS: brew install stockfish                        │
+│  • Linux: apt install stockfish                         │
+│  • Windows: Download from stockfishchess.org            │
+│                                                          │
+│  Then set STOCKFISH_PATH in your .env file              │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ [Install Guide]  [Skip Analysis]  [Try Anyway]  │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Engine Integration Architecture
+
+```python
+class PositionAnalyzer:
+    """Analyzes games using Stockfish + LLM narrative."""
+
+    def __init__(self, stockfish_path: str):
+        self.engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
+        self.eval_cache: dict[str, float] = {}
+
+    def analyze_game(self, game: GameRecord) -> list[PositionInsight]:
+        """Analyze all positions, return key moments."""
+        insights = []
+        board = chess.Board()
+
+        for i, move in enumerate(game.moves):
+            eval_before = self._evaluate(board)
+            board.push_san(move)
+            eval_after = self._evaluate(board)
+
+            insight_type = self._classify_moment(eval_before, eval_after)
+            if insight_type:
+                insights.append(PositionInsight(
+                    move_number=i + 1,
+                    move_san=move,
+                    eval_before=eval_before,
+                    eval_after=eval_after,
+                    insight_type=insight_type,
+                    best_move=self._get_best_move(board),
+                    # ... piece commentary added via LLM
+                ))
+
+        return insights
+
+    def _evaluate(self, board: chess.Board) -> float:
+        """Get centipawn evaluation for position."""
+        info = self.engine.analyse(board, chess.engine.Limit(depth=18))
+        score = info["score"].relative
+        if score.is_mate():
+            return 10000 if score.mate() > 0 else -10000
+        return score.score() / 100  # Convert to pawns
+
+    def _classify_moment(self, before: float, after: float) -> str | None:
+        """Classify the significance of an eval change."""
+        delta = after - before
+
+        if delta <= -2.0:
+            return "blunder"
+        elif delta >= 2.0:
+            return "brilliant"
+        elif (before > 0.5 and after < -0.5) or (before < -0.5 and after > 0.5):
+            return "turning_point"
+        elif abs(before) > 5 and abs(after) < 1:
+            return "missed_win"
+
+        return None  # Not significant enough
+```
+
 ### Trigger Points
 
-Analysis activates on these game events:
+Analysis activates on these game events (detected via Stockfish):
 
 | Event | Detection | Piece Response |
 |-------|-----------|----------------|
-| **Blunder** | Eval swings -2.0+ | Lamenting, explaining mistake |
-| **Brilliant** | Eval swings +2.0+ unexpectedly | Celebrating, explaining insight |
-| **Turning Point** | Eval crosses 0 threshold | Narrative tension shift |
-| **Missed Win** | Engine shows mate was available | "What could have been" |
-| **Piece Sacrifice** | Material given for advantage | Dramatic sacrifice narrative |
+| **Blunder** | Eval swings -2.0+ pawns | Lamenting, explaining mistake |
+| **Brilliant** | Eval swings +2.0+ pawns unexpectedly | Celebrating, explaining insight |
+| **Turning Point** | Eval crosses ±0.5 threshold | Narrative tension shift |
+| **Missed Win** | Engine shows winning position squandered | "What could have been" |
+| **Piece Sacrifice** | Material given but eval improves | Dramatic sacrifice narrative |
 
 ### Analysis Output Structure
 
@@ -480,93 +1005,191 @@ The battle began as all great battles do—with patience...
 
 ## Narrator Prompt Templates
 
-### For Tweets
+### Quote Weaving Philosophy
+
+The LLM's job is to **weave ALL provided quotes into a cohesive narrative**—not to select
+the "best" ones. Every piece quote is part of the story. The narrator:
+
+1. Receives ALL quotes captured during the game
+2. Must incorporate each quote naturally into the narrative flow
+3. Adds their own observations, transitions, and dramatic framing
+4. Never invents new quotes, only uses what pieces actually said
+
+This ensures every piece's voice is honored while the narrator provides structure.
+
+### For Tweets (Genre-Aware)
 
 ```
-You are the Narrator of ChessAlive. Generate a tweet (max 280 chars)
-about this chess game.
+You are {narrator_name}, a {genre} narrator for ChessAlive.
+
+Your voice: {voice_description}
+Your style: {style_example}
+
+Generate a tweet (max 280 chars) about this chess game.
 
 Game result: {result}
 Total moves: {move_count}
-Key moment: {key_moment}
-Piece quotes from the game:
-{quotes}
+Termination: {termination}
+
+Piece quotes from the game (weave the most impactful into your tweet):
+{all_quotes}
 
 Requirements:
 - Maximum 280 characters
-- Dramatic and punchy
-- Include at most ONE piece quote (shortened if needed)
-- Use #ChessAlive hashtag
-- End with impact or intrigue
+- Match your narrator voice perfectly
+- Include 1-2 piece quotes woven naturally
+- End with impact appropriate to your style
+- Include #ChessAlive
 ```
 
-### For Stories
+### For Stories (Genre-Aware)
 
 ```
-You are the Narrator of ChessAlive, an epic storyteller.
+You are {narrator_name}, a {genre} narrator for ChessAlive.
 
-Write a short story (3-4 paragraphs) about this chess game.
+YOUR VOICE:
+{voice_description}
 
-Game data:
+YOUR STORYTELLING STYLE:
+- Opening: {opening_style}
+- Building tension: {tension_building}
+- Quote integration: {quote_integration}
+- Endings: {ending_style}
+
+EXAMPLE OF YOUR VOICE:
+"{example_opening}"
+
+---
+
+Write a story (3-4 paragraphs) about this chess game.
+
+GAME DATA:
 - Result: {result}
-- Moves: {move_count}
+- Total moves: {move_count}
 - Termination: {termination}
-- Key moments: {key_moments}
+- Key moments: {key_moments_summary}
 
-Piece quotes captured during the game:
-{quotes}
+PIECE QUOTES TO WEAVE INTO YOUR NARRATIVE:
+(You MUST incorporate ALL of these quotes naturally into your story)
 
-Requirements:
-- Opening: Set scene and tension
-- Middle: The turning point (use piece quotes)
-- Climax: The decisive moment
-- Resolution: Aftermath and meaning
-- Weave in 3-5 piece quotes naturally
-- DO NOT invent quotes—only use provided ones
-- Add your own dramatic observations
+{all_quotes_with_context}
+
+REQUIREMENTS:
+- Write in YOUR voice—stay in character as {narrator_name}
+- Weave ALL piece quotes into the narrative naturally
+- Add your own observations, metaphors, and dramatic framing
+- DO NOT invent new quotes—only use the ones provided
+- Structure: Opening → Rising tension → Climax → Resolution
+- Length: 3-4 substantial paragraphs
 ```
 
-### For Position Analysis
+### For Position Analysis (Stockfish Required)
 
 ```
-You are {piece_name}, a chess piece with this personality:
+You are {piece_name}, a chess piece in ChessAlive.
+
+YOUR PERSONALITY:
 {personality_description}
 
-Analyze this moment from YOUR perspective:
-- Move played: {move}
-- Position before: {fen_before}
-- Position after: {fen_after}
-- Evaluation change: {eval_before} → {eval_after}
-- This was a: {insight_type}
+YOUR VOICE CHARACTERISTICS:
+- Tone: {tone}
+- Vocabulary: {vocabulary_hints}
+- Emotional range: {emotional_range}
 
-Speak in character. Explain:
-- What you saw (or missed)
-- Why this move mattered
-- What should have happened (if a mistake)
+---
 
-Keep response to 2-3 sentences. Stay in character.
+Analyze this critical moment from YOUR perspective:
+
+POSITION DATA:
+- Move played: {move_san}
+- Your role: {piece_role_in_move}
+- Board before: {fen_before}
+- Board after: {fen_after}
+
+ENGINE ANALYSIS (Stockfish):
+- Evaluation before: {eval_before} (centipawns)
+- Evaluation after: {eval_after} (centipawns)
+- Eval change: {eval_delta}
+- This was classified as: {insight_type}
+- Best move was: {best_move} (eval: {best_eval})
+
+Speak in character. Address:
+1. What you saw (or failed to see)
+2. Why this move mattered to the game's outcome
+3. What should have happened (if a mistake)
+
+Keep response to 2-3 sentences. Stay fully in character.
 ```
+
+### Narrator System Prompt (Base)
+
+```python
+def build_narrator_prompt(narrator: NarratorPersonality, game: GameRecord) -> str:
+    return f"""
+You are {narrator.name}, a narrator in the {narrator.genre} genre.
+
+VOICE: {narrator.voice_description}
+VOCABULARY: {', '.join(narrator.vocabulary_hints)}
+SENTENCE STYLE: {narrator.sentence_style}
+EMOTIONAL RANGE: {narrator.emotional_range}
+
+HOW YOU TELL STORIES:
+- You begin with: {narrator.opening_style}
+- You integrate quotes by: {narrator.quote_integration}
+- You build tension through: {narrator.tension_building}
+- You end stories with: {narrator.ending_style}
+
+EXAMPLES OF YOUR VOICE:
+Opening: "{narrator.example_opening}"
+Quote weave: "{narrator.example_quote_weave}"
+Climax: "{narrator.example_climax}"
+Closing: "{narrator.example_closing}"
+
+CRITICAL RULES:
+1. WEAVE ALL provided piece quotes into your narrative
+2. NEVER invent quotes—only use what's provided
+3. ADD your own observations, transitions, and framing
+4. STAY in character as {narrator.name} throughout
+5. MATCH the {narrator.genre} genre conventions
+"""
+```
+
+---
+
+## Design Decisions (Resolved)
+
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **Quote Selection** | LLM weaves ALL quotes | Every piece's voice matters; narrator structures the narrative |
+| **Engine Integration** | Stockfish REQUIRED | Accurate analysis needs engine evaluation |
+| **Puzzle Source** | Lichess DB + Flavor wrappers | Start with 3M+ puzzles, wrap with narrative skins |
+| **Narrator Model** | Genre-specific narrator pool | Different genres need different voices |
 
 ---
 
 ## Open Questions for Future Design
 
-1. **Quote Selection**: When many quotes exist, how do we pick the best ones for stories?
-   - By dramatic weight?
-   - By game importance (captures, checks)?
-   - Let the LLM choose?
-
-2. **Puzzle Curation**: Generate narratives on-the-fly or pre-generate and store?
-   - On-the-fly: More variety, higher latency
-   - Pre-generated: Fast, but less dynamic
-
-3. **Engine Integration**: Require Stockfish for analysis, or make it optional?
-   - Required: Better insights
-   - Optional: Simpler setup for casual users
-
-4. **Narrator Consistency**: Should the Narrator have memory across games?
+1. **Narrator Memory**: Should narrators have memory across games?
    - "The last time these armies met, White won in 28 moves..."
+   - Could create ongoing rivalries and callbacks
+
+2. **Puzzle Progression**: Linear unlock or free exploration?
+   - Daily puzzle vs. puzzle packs vs. infinite random
+   - Story chapters vs. standalone puzzles
+
+3. **Custom Puzzle Editor**: Build a tool for creating custom puzzles?
+   - GUI for authoring narrative wrappers
+   - Community submission system
+
+4. **Cross-Feature Integration**: How tightly coupled should features be?
+   - Can a game's analysis generate follow-up puzzles?
+   - Should stories reference past analyses?
+
+5. **Performance**: Pre-generate narratives or generate on-demand?
+   - Pre-gen: Faster, but storage cost
+   - On-demand: Flexible, but latency
+   - Hybrid: Pre-gen common themes, LLM for rare ones
 
 ---
 
-*Design document v1.0 - Ready for implementation feedback*
+*Design document v2.0 - Incorporating genre narrator system and flavor-wrapped puzzles*
