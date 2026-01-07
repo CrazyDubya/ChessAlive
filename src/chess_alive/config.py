@@ -14,7 +14,7 @@ class LLMConfig:
 
     api_key: str = field(default_factory=lambda: os.getenv("OPENROUTER_API_KEY", ""))
     base_url: str = "https://openrouter.ai/api/v1"
-    model: str = field(default_factory=lambda: os.getenv("CHESS_LLM_MODEL", "openai/gpt-4o-mini"))
+    model: str = field(default_factory=lambda: os.getenv("CHESS_LLM_MODEL", "mistralai/devstral-2512:free"))
     temperature: float = 0.7
     max_tokens: int = 300
 
