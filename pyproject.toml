@@ -24,9 +24,13 @@ dev = [
     "mypy>=1.5.0",
     "ruff>=0.1.0",
 ]
+gui = [
+    "pillow>=10.0.0",
+]
 
 [project.scripts]
 chess-alive = "chess_alive.main:main"
+chess-alive-gui = "chess_alive.ui.gui:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
