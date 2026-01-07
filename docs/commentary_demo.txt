@@ -1,0 +1,29 @@
+=== ChessAlive Commentary Demo ===
+Model: mistralai/devstral-2512:free
+
+Move: 1. e4
+Piece: Footsoldier
+
+[Footsoldier]:
+  "First step taken, sir. Wide open ahead—hope the others follow."
+
+Move: 1... e5
+[Dark Infantry]:
+  "*Grimly* Forward we march, into the fray. The enemy's lines will not hold forever."
+
+Move: 2... exd4 (CAPTURE!)
+[Dark Infantry]:
+  "*Grimly* Another step forward, another foe fallen. The path darkens, but I march on."
+
+[Footsoldier]:
+  "*clutches chest* Took one for the team... but my brothers will march on!"
+
+=== Commentary Working Successfully ===
+
+Each piece speaks in character based on their personality:
+- Footsoldier: Humble, earnest, dreams of promotion
+- Dark Infantry: Grim but determined, devoted servant
+- Knights: Chivalrous/fearsome depending on color
+- Bishops: Cunning advisors with cryptic speech
+- Queens: Fierce warriors commanding the board
+- Kings: Wise/calculating rulers overseeing all

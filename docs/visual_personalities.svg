@@ -1,0 +1,121 @@
+<svg class="rich-terminal" viewBox="0 0 811 440.4" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generated with Rich https://www.textualize.io -->
+    <style>
+
+    @font-face {
+        font-family: "Fira Code";
+        src: local("FiraCode-Regular"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff2/FiraCode-Regular.woff2") format("woff2"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff/FiraCode-Regular.woff") format("woff");
+        font-style: normal;
+        font-weight: 400;
+    }
+    @font-face {
+        font-family: "Fira Code";
+        src: local("FiraCode-Bold"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff2/FiraCode-Bold.woff2") format("woff2"),
+                url("https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff/FiraCode-Bold.woff") format("woff");
+        font-style: bold;
+        font-weight: 700;
+    }
+
+    .terminal-4152392457-matrix {
+        font-family: Fira Code, monospace;
+        font-size: 20px;
+        line-height: 24.4px;
+        font-variant-east-asian: full-width;
+    }
+
+    .terminal-4152392457-title {
+        font-size: 18px;
+        font-weight: bold;
+        font-family: arial;
+    }
+
+    .terminal-4152392457-r1 { fill: #98729f;font-weight: bold }
+.terminal-4152392457-r2 { fill: #c5c8c6 }
+.terminal-4152392457-r3 { fill: #c5c8c6;font-weight: bold }
+.terminal-4152392457-r4 { fill: #68a0b3 }
+    </style>
+
+    <defs>
+    <clipPath id="terminal-4152392457-clip-terminal">
+      <rect x="0" y="0" width="792.0" height="389.4" />
+    </clipPath>
+    <clipPath id="terminal-4152392457-line-0">
+    <rect x="0" y="1.5" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-1">
+    <rect x="0" y="25.9" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-2">
+    <rect x="0" y="50.3" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-3">
+    <rect x="0" y="74.7" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-4">
+    <rect x="0" y="99.1" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-5">
+    <rect x="0" y="123.5" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-6">
+    <rect x="0" y="147.9" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-7">
+    <rect x="0" y="172.3" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-8">
+    <rect x="0" y="196.7" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-9">
+    <rect x="0" y="221.1" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-10">
+    <rect x="0" y="245.5" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-11">
+    <rect x="0" y="269.9" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-12">
+    <rect x="0" y="294.3" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-13">
+    <rect x="0" y="318.7" width="793" height="24.65"/>
+            </clipPath>
+<clipPath id="terminal-4152392457-line-14">
+    <rect x="0" y="343.1" width="793" height="24.65"/>
+            </clipPath>
+    </defs>
+
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="809" height="438.4" rx="8"/><text class="terminal-4152392457-title" fill="#c5c8c6" text-anchor="middle" x="404" y="27">ChessAlive&#160;Cast</text>
+            <g transform="translate(26,22)">
+            <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
+            <circle cx="22" cy="0" r="7" fill="#febc2e"/>
+            <circle cx="44" cy="0" r="7" fill="#28c840"/>
+            </g>
+        
+    <g transform="translate(9, 41)" clip-path="url(#terminal-4152392457-clip-terminal)">
+    
+    <g class="terminal-4152392457-matrix">
+    <text class="terminal-4152392457-r1" x="0" y="20" textLength="183" clip-path="url(#terminal-4152392457-line-0)">🎭&#160;Meet&#160;the&#160;Cast</text><text class="terminal-4152392457-r2" x="793" y="20" textLength="12.2" clip-path="url(#terminal-4152392457-line-0)">
+</text><text class="terminal-4152392457-r2" x="793" y="44.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-1)">
+</text><text class="terminal-4152392457-r2" x="0" y="68.8" textLength="622.2" clip-path="url(#terminal-4152392457-line-2)">╭───────┬─────────────────┬───────────────────────╮</text><text class="terminal-4152392457-r2" x="793" y="68.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-2)">
+</text><text class="terminal-4152392457-r2" x="0" y="93.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-3)">│</text><text class="terminal-4152392457-r3" x="24.4" y="93.2" textLength="61" clip-path="url(#terminal-4152392457-line-3)">Piece</text><text class="terminal-4152392457-r2" x="97.6" y="93.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-3)">│</text><text class="terminal-4152392457-r3" x="122" y="93.2" textLength="183" clip-path="url(#terminal-4152392457-line-3)">Name&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="93.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-3)">│</text><text class="terminal-4152392457-r3" x="341.6" y="93.2" textLength="256.2" clip-path="url(#terminal-4152392457-line-3)">Personality&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="93.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-3)">│</text><text class="terminal-4152392457-r2" x="793" y="93.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-3)">
+</text><text class="terminal-4152392457-r2" x="0" y="117.6" textLength="622.2" clip-path="url(#terminal-4152392457-line-4)">├───────┼─────────────────┼───────────────────────┤</text><text class="terminal-4152392457-r2" x="793" y="117.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-4)">
+</text><text class="terminal-4152392457-r2" x="0" y="142" textLength="12.2" clip-path="url(#terminal-4152392457-line-5)">│</text><text class="terminal-4152392457-r3" x="24.4" y="142" textLength="61" clip-path="url(#terminal-4152392457-line-5)">♔&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="142" textLength="12.2" clip-path="url(#terminal-4152392457-line-5)">│</text><text class="terminal-4152392457-r4" x="122" y="142" textLength="183" clip-path="url(#terminal-4152392457-line-5)">King&#160;Aldric&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="142" textLength="12.2" clip-path="url(#terminal-4152392457-line-5)">│</text><text class="terminal-4152392457-r2" x="341.6" y="142" textLength="244" clip-path="url(#terminal-4152392457-line-5)">👑&#160;Wise&#160;ruler&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="142" textLength="12.2" clip-path="url(#terminal-4152392457-line-5)">│</text><text class="terminal-4152392457-r2" x="793" y="142" textLength="12.2" clip-path="url(#terminal-4152392457-line-5)">
+</text><text class="terminal-4152392457-r2" x="0" y="166.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-6)">│</text><text class="terminal-4152392457-r3" x="24.4" y="166.4" textLength="61" clip-path="url(#terminal-4152392457-line-6)">♕&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="166.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-6)">│</text><text class="terminal-4152392457-r4" x="122" y="166.4" textLength="183" clip-path="url(#terminal-4152392457-line-6)">Queen&#160;Seraphina</text><text class="terminal-4152392457-r2" x="317.2" y="166.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-6)">│</text><text class="terminal-4152392457-r2" x="341.6" y="166.4" textLength="268.4" clip-path="url(#terminal-4152392457-line-6)">⚔️&#160;&#160;Fierce&#160;warrior&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="166.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-6)">│</text><text class="terminal-4152392457-r2" x="793" y="166.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-6)">
+</text><text class="terminal-4152392457-r2" x="0" y="190.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-7)">│</text><text class="terminal-4152392457-r3" x="24.4" y="190.8" textLength="61" clip-path="url(#terminal-4152392457-line-7)">♘&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="190.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-7)">│</text><text class="terminal-4152392457-r4" x="122" y="190.8" textLength="183" clip-path="url(#terminal-4152392457-line-7)">Sir&#160;Galahad&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="190.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-7)">│</text><text class="terminal-4152392457-r2" x="341.6" y="190.8" textLength="268.4" clip-path="url(#terminal-4152392457-line-7)">🛡️&#160;&#160;Chivalrous&#160;knight&#160;</text><text class="terminal-4152392457-r2" x="610" y="190.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-7)">│</text><text class="terminal-4152392457-r2" x="793" y="190.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-7)">
+</text><text class="terminal-4152392457-r2" x="0" y="215.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-8)">│</text><text class="terminal-4152392457-r3" x="24.4" y="215.2" textLength="61" clip-path="url(#terminal-4152392457-line-8)">♗&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="215.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-8)">│</text><text class="terminal-4152392457-r4" x="122" y="215.2" textLength="183" clip-path="url(#terminal-4152392457-line-8)">Bishop&#160;Luminos&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="215.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-8)">│</text><text class="terminal-4152392457-r2" x="341.6" y="215.2" textLength="244" clip-path="url(#terminal-4152392457-line-8)">🔮&#160;Cunning&#160;advisor&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="215.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-8)">│</text><text class="terminal-4152392457-r2" x="793" y="215.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-8)">
+</text><text class="terminal-4152392457-r2" x="0" y="239.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-9)">│</text><text class="terminal-4152392457-r3" x="24.4" y="239.6" textLength="61" clip-path="url(#terminal-4152392457-line-9)">♖&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="239.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-9)">│</text><text class="terminal-4152392457-r4" x="122" y="239.6" textLength="183" clip-path="url(#terminal-4152392457-line-9)">Tower&#160;Guard&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="239.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-9)">│</text><text class="terminal-4152392457-r2" x="341.6" y="239.6" textLength="244" clip-path="url(#terminal-4152392457-line-9)">🏰&#160;Stalwart&#160;defender&#160;</text><text class="terminal-4152392457-r2" x="610" y="239.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-9)">│</text><text class="terminal-4152392457-r2" x="793" y="239.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-9)">
+</text><text class="terminal-4152392457-r2" x="0" y="264" textLength="12.2" clip-path="url(#terminal-4152392457-line-10)">│</text><text class="terminal-4152392457-r3" x="24.4" y="264" textLength="61" clip-path="url(#terminal-4152392457-line-10)">♙&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="264" textLength="12.2" clip-path="url(#terminal-4152392457-line-10)">│</text><text class="terminal-4152392457-r4" x="122" y="264" textLength="183" clip-path="url(#terminal-4152392457-line-10)">Footsoldier&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="264" textLength="12.2" clip-path="url(#terminal-4152392457-line-10)">│</text><text class="terminal-4152392457-r2" x="341.6" y="264" textLength="244" clip-path="url(#terminal-4152392457-line-10)">🚶&#160;Humble&#160;dreamer&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="264" textLength="12.2" clip-path="url(#terminal-4152392457-line-10)">│</text><text class="terminal-4152392457-r2" x="793" y="264" textLength="12.2" clip-path="url(#terminal-4152392457-line-10)">
+</text><text class="terminal-4152392457-r2" x="0" y="288.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-11)">│</text><text class="terminal-4152392457-r2" x="97.6" y="288.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-11)">│</text><text class="terminal-4152392457-r2" x="317.2" y="288.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-11)">│</text><text class="terminal-4152392457-r2" x="610" y="288.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-11)">│</text><text class="terminal-4152392457-r2" x="793" y="288.4" textLength="12.2" clip-path="url(#terminal-4152392457-line-11)">
+</text><text class="terminal-4152392457-r2" x="0" y="312.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-12)">│</text><text class="terminal-4152392457-r3" x="24.4" y="312.8" textLength="61" clip-path="url(#terminal-4152392457-line-12)">♚&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="312.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-12)">│</text><text class="terminal-4152392457-r4" x="122" y="312.8" textLength="183" clip-path="url(#terminal-4152392457-line-12)">King&#160;Malachar&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="312.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-12)">│</text><text class="terminal-4152392457-r2" x="341.6" y="312.8" textLength="244" clip-path="url(#terminal-4152392457-line-12)">🖤&#160;Cunning&#160;strategist</text><text class="terminal-4152392457-r2" x="610" y="312.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-12)">│</text><text class="terminal-4152392457-r2" x="793" y="312.8" textLength="12.2" clip-path="url(#terminal-4152392457-line-12)">
+</text><text class="terminal-4152392457-r2" x="0" y="337.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-13)">│</text><text class="terminal-4152392457-r3" x="24.4" y="337.2" textLength="61" clip-path="url(#terminal-4152392457-line-13)">♛&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="337.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-13)">│</text><text class="terminal-4152392457-r4" x="122" y="337.2" textLength="183" clip-path="url(#terminal-4152392457-line-13)">Queen&#160;Nyx&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="337.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-13)">│</text><text class="terminal-4152392457-r2" x="341.6" y="337.2" textLength="268.4" clip-path="url(#terminal-4152392457-line-13)">🗡️&#160;&#160;Shadow&#160;assassin&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="337.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-13)">│</text><text class="terminal-4152392457-r2" x="793" y="337.2" textLength="12.2" clip-path="url(#terminal-4152392457-line-13)">
+</text><text class="terminal-4152392457-r2" x="0" y="361.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-14)">│</text><text class="terminal-4152392457-r3" x="24.4" y="361.6" textLength="61" clip-path="url(#terminal-4152392457-line-14)">♞&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="97.6" y="361.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-14)">│</text><text class="terminal-4152392457-r4" x="122" y="361.6" textLength="183" clip-path="url(#terminal-4152392457-line-14)">Black&#160;Rider&#160;&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="317.2" y="361.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-14)">│</text><text class="terminal-4152392457-r2" x="341.6" y="361.6" textLength="244" clip-path="url(#terminal-4152392457-line-14)">💀&#160;Fearsome&#160;raider&#160;&#160;&#160;</text><text class="terminal-4152392457-r2" x="610" y="361.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-14)">│</text><text class="terminal-4152392457-r2" x="793" y="361.6" textLength="12.2" clip-path="url(#terminal-4152392457-line-14)">
+</text><text class="terminal-4152392457-r2" x="0" y="386" textLength="622.2" clip-path="url(#terminal-4152392457-line-15)">╰───────┴─────────────────┴───────────────────────╯</text><text class="terminal-4152392457-r2" x="793" y="386" textLength="12.2" clip-path="url(#terminal-4152392457-line-15)">
+</text>
+    </g>
+    </g>
+</svg>

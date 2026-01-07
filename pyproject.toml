@@ -1,0 +1,55 @@
+[project]
+name = "chess-alive"
+version = "0.1.0"
+description = "A chess game where each piece has an LLM-powered personality and provides commentary"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "ChessAlive Contributors"}
+]
+dependencies = [
+    "chess>=1.10.0",
+    "openai>=1.0.0",
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.5.0",
+    "ruff>=0.1.0",
+]
+gui = [
+    "pillow>=10.0.0",
+]
+
+[project.scripts]
+chess-alive = "chess_alive.main:main"
+chess-alive-gui = "chess_alive.ui.gui:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
