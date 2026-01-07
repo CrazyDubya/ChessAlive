@@ -1,3 +1,23 @@
+Metadata-Version: 2.4
+Name: chess-alive
+Version: 0.1.0
+Summary: A chess game where each piece has an LLM-powered personality and provides commentary
+Author: ChessAlive Contributors
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: chess>=1.10.0
+Requires-Dist: openai>=1.0.0
+Requires-Dist: httpx>=0.25.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: rich>=13.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+
 # ChessAlive
 
 A chess game where every piece has a voice! Each chess piece is connected to an LLM and provides commentary during the game.

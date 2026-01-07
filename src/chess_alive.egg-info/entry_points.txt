@@ -1,0 +1,2 @@
+[console_scripts]
+chess-alive = chess_alive.main:main
