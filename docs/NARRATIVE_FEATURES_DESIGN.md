@@ -97,6 +97,293 @@ ALL piece quotes and weaves them into a story that matches the narrator's style.
 
 ---
 
+## Genre-Specific Piece Personalities
+
+For complete genre immersion, **the pieces themselves** must speak in genre-appropriate voices.
+The current fantasy personalities (King Aldric, etc.) become one of many "Personality Sets."
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  GAME SETUP: Choose Your Genre                          │
+│                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │ ⚔️ Epic     │  │ 🔍 Noir     │  │ 🎙️ Sports   │      │
+│  │   Fantasy   │  │             │  │             │      │
+│  └─────────────┘  └─────────────┘  └─────────────┘      │
+│                                                          │
+│  Selected: Noir                                          │
+│  Pieces will speak as: The Kingpin, The Dame, etc.      │
+│  Story narrated by: The Gumshoe                         │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+             ┌─────────────────────────┐
+             │  DURING GAMEPLAY:       │
+             │  Pieces generate noir-  │
+             │  style commentary       │
+             │                         │
+             │  "End of the line,      │
+             │   pal." - The Muscle    │
+             └─────────────────────────┘
+                           │
+                           ▼
+             ┌─────────────────────────┐
+             │  POST-GAME:             │
+             │  Noir narrator weaves   │
+             │  noir quotes into       │
+             │  noir story             │
+             └─────────────────────────┘
+```
+
+### Personality Set Structure
+
+```python
+@dataclass
+class PiecePersonality:
+    """A single piece's character in a genre."""
+    piece_type: str                   # "king", "queen", "rook", etc.
+    color: str                        # "white", "black"
+    name: str                         # "The Kingpin", "King Aldric"
+
+    # Character traits
+    voice_description: str            # How they speak
+    personality_traits: list[str]     # Key characteristics
+    speech_patterns: list[str]        # Verbal quirks, catchphrases
+
+    # Behavioral modifiers
+    aggression: float                 # 0.0 - 1.0
+    eloquence: float                  # 0.0 - 1.0
+    humor: float                      # 0.0 - 1.0
+
+    # Example quotes for few-shot prompting
+    example_move: str                 # Quote when making a move
+    example_capture: str              # Quote when capturing
+    example_captured: str             # Quote when being captured
+    example_check: str                # Quote when giving/receiving check
+
+@dataclass
+class PersonalitySet:
+    """Complete set of 12 piece personalities for a genre."""
+    genre: str
+    name: str                         # "The Criminal Underworld"
+    description: str                  # Flavor text
+    white_pieces: dict[str, PiecePersonality]  # king, queen, rook, bishop, knight, pawn
+    black_pieces: dict[str, PiecePersonality]
+```
+
+---
+
+### Set: Epic Fantasy (Current Default)
+
+*The eternal war between the Kingdom of Light and the Dark Realm.*
+
+#### White Pieces - The Kingdom of Light
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | King Aldric | Wise, measured, regal | "For the realm, we stand united." |
+| **Queen** | Queen Seraphina | Fierce, commanding, passionate | "They will learn to fear the light!" |
+| **Rook** | Tower Guard | Stoic, military, direct | "The walls hold. We hold." |
+| **Bishop** | Bishop Luminos | Scholarly, cryptic, patient | "The path reveals itself to those who wait." |
+| **Knight** | Sir Galahad | Chivalrous, bold, honorable | "For the kingdom! For glory!" |
+| **Pawn** | Footsoldier | Humble, earnest, hopeful | "One step closer to becoming something more." |
+
+#### Black Pieces - The Dark Realm
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | King Malachar | Cold, calculating, patient | "Every move brings me closer to victory." |
+| **Queen** | Queen Nyx | Deadly, mysterious, mocking | "You dare challenge me? How... amusing." |
+| **Rook** | Dark Tower | Ominous, sparse, inevitable | "The shadow falls." |
+| **Bishop** | Bishop Umbra | Prophetic, unsettling, knowing | "I have seen how this ends." |
+| **Knight** | The Black Rider | Wild, intimidating, chaotic | "Chaos rides with me!" |
+| **Pawn** | Dark Infantry | Grim, devoted, fatalistic | "We serve until we fall." |
+
+---
+
+### Set: Noir/Hardboiled
+
+*The gritty underworld where every piece has an angle.*
+
+#### White Pieces - The Law (Morally Gray)
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Commissioner | Tired, pragmatic, burdened | "I've seen too much to believe in clean wins." |
+| **Queen** | The DA | Sharp, ambitious, ruthless | "I'll get my conviction. One way or another." |
+| **Rook** | The Muscle | Terse, threatening, loyal | "Boss says move, I move." |
+| **Bishop** | The Fixer | Smooth, connected, opportunistic | "Everyone has a price. I just find it." |
+| **Knight** | The Detective | Cynical, clever, haunted | "I've got a bad feeling about this one." |
+| **Pawn** | The Beat Cop | Nervous, idealistic, expendable | "Just trying to make it to retirement." |
+
+#### Black Pieces - The Syndicate
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Kingpin | Calm, menacing, untouchable | "You think you can take what's mine?" |
+| **Queen** | The Dame | Seductive, dangerous, calculating | "Oh honey, you have no idea who you're dealing with." |
+| **Rook** | The Enforcer | Brutal, silent, efficient | "Nothing personal." |
+| **Bishop** | The Consigliere | Elegant, advisory, deadly | "I would advise against that move." |
+| **Knight** | The Wildcard | Unpredictable, flashy, reckless | "Let's make this interesting!" |
+| **Pawn** | The Fall Guy | Desperate, disposable, hoping | "Maybe this time I'll catch a break." |
+
+---
+
+### Set: Sports Commentary
+
+*Every game is the championship match.*
+
+#### White Pieces - Home Team
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Captain | Motivational, focused, leading | "We've trained for this. Let's execute!" |
+| **Queen** | The MVP | Confident, dominant, clutch | "This is MY court!" |
+| **Rook** | The Veteran | Experienced, steady, reliable | "I've seen every play. Nothing surprises me." |
+| **Bishop** | The Strategist | Analytical, precise, cerebral | "Watch the angles. Always watch the angles." |
+| **Knight** | The Rookie Star | Eager, explosive, highlight-reel | "DID YOU SEE THAT?!" |
+| **Pawn** | The Bench Player | Supportive, hungry, waiting | "Put me in, coach!" |
+
+#### Black Pieces - Away Team
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Rival Captain | Intense, focused, respected | "May the best team win. It's going to be us." |
+| **Queen** | The Superstar | Flashy, trash-talking, elite | "Y'all aren't ready for what's coming!" |
+| **Rook** | The Wall | Defensive, intimidating, immovable | "Nothing gets past me." |
+| **Bishop** | The Coach's Son | Smart, underestimated, sneaky | "They never see me coming." |
+| **Knight** | The Showboat | Athletic, dramatic, crowd-pleasing | "Let's give 'em a show!" |
+| **Pawn** | The Walk-On | Determined, overlooked, proving | "I earned my spot." |
+
+---
+
+### Set: Gothic Horror
+
+*The pieces are not what they seem. Perhaps they never were.*
+
+#### White Pieces - The Haunted
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Last Lord | Weary, cursed, tragic | "This castle holds us all prisoner." |
+| **Queen** | The Specter Bride | Ethereal, mournful, cold | "Death did not part us. It bound us." |
+| **Rook** | The Stone Guardian | Ancient, rumbling, bound | "I have watched. For centuries, I have watched." |
+| **Bishop** | The Mad Priest | Fervent, unhinged, prophetic | "The old gods stir! Can you not feel them?!" |
+| **Knight** | The Revenant | Hollow, duty-bound, echoing | "I... remember... fighting. Always fighting." |
+| **Pawn** | The Lost Soul | Confused, plaintive, fading | "Why am I still here?" |
+
+#### Black Pieces - The Darkness
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | The Undying | Patient, inevitable, ancient | "I was here before. I will be here after." |
+| **Queen** | The Blood Countess | Sensual, cruel, hungry | "Your fear is... exquisite." |
+| **Rook** | The Obelisk | Wordless, oppressive, wrong | "*grinding stone sounds*" |
+| **Bishop** | The Whisperer | Insidious, tempting, everywhere | "Listen closely... I have such secrets..." |
+| **Knight** | The Nightmare | Surreal, shifting, laughing | "You're still dreaming. You never woke up." |
+| **Pawn** | The Hollow | Empty, echoing, consuming | "Join us. It's so peaceful here." |
+
+---
+
+### Set: Comedy/Satire
+
+*Chess, but nobody really knows what they're doing.*
+
+#### White Pieces - Team Overconfident
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | King Jeff | Clueless, delegating, CEO-brained | "I'm more of a big-picture guy." |
+| **Queen** | Queen Karen | Demanding, complaining, entitled | "I need to speak to the other king's manager." |
+| **Rook** | Castle McMansion | Pretentious, insecure, overbuilt | "I'm not just a tower, I'm a LIFESTYLE." |
+| **Bishop** | Bishop Chad | Bro-culture, diagonal-obsessed | "Bro, I only move diagonally. It's a whole THING." |
+| **Knight** | Sir Hops-a-Lot | Confused, L-shaped, apologetic | "Sorry, sorry, coming through! Sorry!" |
+| **Pawn** | Pawn #5 | Existential, numbered, philosophical | "Why am I Pawn FIVE? What happened to one through four?" |
+
+#### Black Pieces - Team Chaotic
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | King Dave | Lazy, hiding, delegating | "Look, I'm really more of a staying-alive guy." |
+| **Queen** | Drama Queen | Theatrical, extra, spotlight-seeking | "Finally! A STAGE worthy of my TALENTS!" |
+| **Rook** | The Introvert | Anxious, corner-loving, reluctant | "I'm fine here in the corner, thanks." |
+| **Bishop** | Bishop Actually | Pedantic, correcting, insufferable | "Well, ACTUALLY, that's not how the Sicilian—" |
+| **Knight** | Horse With No Name | Mysterious, non-sequitur, random | "The desert holds many secrets. Also, I can jump." |
+| **Pawn** | The Intern | Overwhelmed, underpaid, hopeful | "Is this part of my professional development?" |
+
+---
+
+### Set: Documentary
+
+*Observing chess as a natural phenomenon.*
+
+#### White Pieces - Specimen Set Alpha
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | Alpha Rex | Territorial, protective, signaling | "*asserts dominance through strategic positioning*" |
+| **Queen** | Alpha Domina | Apex hunter, ranging, efficient | "The hunting grounds are mine." |
+| **Rook** | Turret Erectus | Structural, defending, ancient | "*holds position with remarkable stillness*" |
+| **Bishop** | Diagonis Major | Specialized, adapted, precise | "Evolution favored the diagonal approach." |
+| **Knight** | Equus Mobilis | Leaping, unpredictable, adaptive | "*demonstrates unique L-shaped locomotion*" |
+| **Pawn** | Pedes Communis | Colonial, advancing, transformative | "*moves steadily toward metamorphosis zone*" |
+
+#### Black Pieces - Specimen Set Beta
+
+| Piece | Name | Voice | Example Quote |
+|-------|------|-------|---------------|
+| **King** | Beta Rex | Cornered, defensive, calculating | "The species survives through caution." |
+| **Queen** | Beta Domina | Counter-hunter, territorial, aggressive | "The rival approaches. Fascinating." |
+| **Rook** | Turret Noctis | Shadowed, patient, striking | "*exhibits classic ambush predator behavior*" |
+| **Bishop** | Diagonis Minor | Flanking, opportunistic, evolved | "A different diagonal. A different destiny." |
+| **Knight** | Equus Umbra | Erratic, threatening, displayed | "*the warning dance begins*" |
+| **Pawn** | Pedes Obscura | Massed, advancing, inevitable | "*the colony marches as one*" |
+
+---
+
+### Personality Set Registry
+
+```python
+PERSONALITY_SETS: dict[str, PersonalitySet] = {
+    "epic_fantasy": EpicFantasySet,      # King Aldric, Queen Seraphina...
+    "noir": NoirSet,                      # The Kingpin, The Dame...
+    "sports": SportsSet,                  # The Captain, The MVP...
+    "gothic_horror": GothicHorrorSet,     # The Last Lord, The Blood Countess...
+    "comedy": ComedySet,                  # King Jeff, Queen Karen...
+    "documentary": DocumentarySet,        # Alpha Rex, Specimen Set Alpha...
+}
+
+def get_piece_personality(
+    genre: str,
+    piece_type: str,
+    color: str
+) -> PiecePersonality:
+    """Get the personality for a specific piece in a genre."""
+    personality_set = PERSONALITY_SETS[genre]
+    pieces = personality_set.white_pieces if color == "white" else personality_set.black_pieces
+    return pieces[piece_type]
+```
+
+---
+
+### Example: Same Move, Different Genres
+
+**A knight captures an enemy bishop on move 17.**
+
+| Genre | Piece | Quote |
+|-------|-------|-------|
+| **Epic Fantasy** | Sir Galahad | "For the kingdom! Your dark magic ends here, sorcerer!" |
+| **Noir** | The Detective | "End of the line, Fixer. You should've stayed out of this." |
+| **Sports** | The Rookie Star | "WHAT A PLAY! Did you SEE that?! Highlight reel!" |
+| **Gothic Horror** | The Revenant | "I remember... you. We met before. In another game..." |
+| **Comedy** | Sir Hops-a-Lot | "Oh no, did I land on you? I'm SO sorry, I can never tell where I'm going!" |
+| **Documentary** | Equus Mobilis | "*executes successful predation via unique L-shaped approach*" |
+
+---
+
 ## Narrator Selection Flow
 
 ```
