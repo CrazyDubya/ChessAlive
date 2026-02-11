@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Optional, TYPE_CHECKING
 import chess
@@ -64,9 +65,13 @@ class LLMPlayer(Player):
             temperature=0.3,  # Lower temperature for more consistent moves
         )
 
-        # Parse the move from response
-        move = self._parse_move_from_response(response, game)
+        # Try JSON parsing first, then fall back to text parsing
+        move = self._parse_json_response(response, game)
+        if move and game.is_legal_move(move):
+            return move
 
+        # Fall back to text-based MOVE: pattern
+        move = self._parse_move_from_response(response, game)
         if move and game.is_legal_move(move):
             return move
 
@@ -98,13 +103,17 @@ class LLMPlayer(Player):
 {style_hint}
 
 When asked for a move, analyze the position carefully and respond with your chosen move.
-Your response MUST include the move in Standard Algebraic Notation (SAN) format.
 
-IMPORTANT: Format your move response as: MOVE: <your move>
-Example: MOVE: e4
-Example: MOVE: Nf3
-Example: MOVE: O-O (for castling)
-Example: MOVE: exd5 (for captures)
+IMPORTANT: Respond with a JSON object in this exact format:
+{{"move": "<your move in SAN>", "reasoning": "<brief analysis>"}}
+
+Examples:
+{{"move": "e4", "reasoning": "Control the center"}}
+{{"move": "Nf3", "reasoning": "Develop knight toward center"}}
+{{"move": "O-O", "reasoning": "Castle for king safety"}}
+{{"move": "exd5", "reasoning": "Win a pawn in the center"}}
+
+If you cannot use JSON, format your response as: MOVE: <your move>
 
 Always choose a legal move from the provided list of legal moves."""
 
@@ -152,14 +161,44 @@ Legal moves available: {', '.join(legal_moves)}
 {state_str}
 
 It's your turn. Analyze the position and choose the best move.
-Remember to format your response as: MOVE: <your chosen move>"""
+Respond with JSON: {{"move": "<SAN>", "reasoning": "<analysis>"}}"""
 
         return prompt
+
+    def _parse_json_response(
+        self, response: str, game: ChessGame
+    ) -> Optional[chess.Move]:
+        """Parse a JSON-structured move response.
+
+        Tries to extract a JSON object with a "move" field from the response.
+        Handles cases where the JSON is embedded in surrounding text.
+        """
+        # Try to find JSON in the response
+        json_match = re.search(r'\{[^{}]*"move"\s*:\s*"[^"]*"[^{}]*\}', response)
+        if json_match:
+            try:
+                data = json.loads(json_match.group())
+                move_str = data.get("move", "").strip()
+                if move_str:
+                    return game.parse_move(move_str)
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
+        # Try the whole response as JSON
+        try:
+            data = json.loads(response.strip())
+            move_str = data.get("move", "").strip()
+            if move_str:
+                return game.parse_move(move_str)
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+        return None
 
     def _parse_move_from_response(
         self, response: str, game: ChessGame
     ) -> Optional[chess.Move]:
-        """Parse a move from the LLM response."""
+        """Parse a move from the LLM response using text patterns."""
         # Look for "MOVE: <move>" pattern
         move_pattern = r"MOVE:\s*([A-Za-z0-9\-\+\#\=]+)"
         match = re.search(move_pattern, response, re.IGNORECASE)
@@ -213,10 +252,8 @@ Remember to format your response as: MOVE: <your chosen move>"""
 
         prompt = self._build_move_prompt(game) + """
 
-Please also explain your reasoning for the move you choose.
-Format:
-REASONING: <your analysis>
-MOVE: <your chosen move>"""
+Please provide detailed reasoning for your move.
+Respond with JSON: {"move": "<SAN>", "reasoning": "<detailed analysis>"}"""
 
         response = await self._client.complete(
             prompt,
@@ -224,7 +261,24 @@ MOVE: <your chosen move>"""
             temperature=0.4,
         )
 
-        # Extract reasoning
+        # Try JSON first for both move and reasoning
+        reasoning = ""
+        move = None
+
+        json_match = re.search(r'\{[^{}]*"move"\s*:\s*"[^"]*"[^{}]*\}', response)
+        if json_match:
+            try:
+                data = json.loads(json_match.group())
+                move_str = data.get("move", "").strip()
+                reasoning = data.get("reasoning", "")
+                if move_str:
+                    move = game.parse_move(move_str)
+                    if move and game.is_legal_move(move):
+                        return move, reasoning
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
+        # Fall back to text parsing
         reasoning_match = re.search(
             r"REASONING:\s*(.+?)(?=MOVE:|$)", response, re.DOTALL | re.IGNORECASE
         )

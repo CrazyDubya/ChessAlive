@@ -184,8 +184,18 @@ class CLI:
             self.config = get_config()
 
     def configure_match(self, mode: GameMode) -> MatchConfig:
-        """Configure match settings."""
-        config = MatchConfig(mode=mode)
+        """Configure match settings, pre-populated from mode defaults."""
+        defaults = mode.defaults
+        config = MatchConfig(
+            mode=mode,
+            commentary_frequency=defaults.commentary_frequency,
+            stockfish_depth=defaults.stockfish_depth,
+            stockfish_time=defaults.stockfish_time,
+            stockfish_skill=defaults.stockfish_skill,
+            llm_style_white=defaults.llm_style_white,
+            llm_style_black=defaults.llm_style_black,
+            max_moves=defaults.max_moves,
+        )
 
         self.console.print(f"\n[bold]Configuring {mode.description}[/bold]\n")
 
@@ -296,9 +306,14 @@ class CLI:
             # Run the match
             result: GameResult = await match.run()
 
-            # Print final board
+            # Print final board and post-game summary
             self.console.print("\n[bold]Final Position:[/bold]")
             self.display.print_board(match.game)
+            self.display.print_post_game_summary(
+                match.game,
+                white_name=match_config.white_name,
+                black_name=match_config.black_name,
+            )
 
             # Print PGN
             if Confirm.ask("\nShow PGN?", default=False):

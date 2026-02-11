@@ -1,8 +1,62 @@
 """Game mode definitions."""
 
+from dataclasses import dataclass
 from enum import Enum, auto
 
 from ..players.base import PlayerType
+
+
+@dataclass
+class ModeConfig:
+    """Per-mode default configuration.
+
+    Each GameMode carries sensible defaults for commentary, engine, and LLM
+    settings so the UI only has to override what the user explicitly changes.
+    """
+
+    commentary_frequency: str = "every_move"
+    stockfish_depth: int = 15
+    stockfish_time: float = 1.0
+    stockfish_skill: int = 20
+    llm_style_white: str = "balanced"
+    llm_style_black: str = "balanced"
+    max_moves: int = 500
+
+
+# Tuned defaults per mode
+_MODE_DEFAULTS: dict[str, ModeConfig] = {
+    "PLAYER_VS_PLAYER": ModeConfig(
+        commentary_frequency="key_moments",
+        max_moves=500,
+    ),
+    "PLAYER_VS_COMPUTER": ModeConfig(
+        commentary_frequency="key_moments",
+        stockfish_skill=15,
+        stockfish_depth=15,
+    ),
+    "COMPUTER_VS_COMPUTER": ModeConfig(
+        commentary_frequency="captures_only",
+        stockfish_skill=20,
+        stockfish_depth=20,
+        stockfish_time=0.5,
+        max_moves=300,
+    ),
+    "PLAYER_VS_LLM": ModeConfig(
+        commentary_frequency="every_move",
+        llm_style_black="balanced",
+    ),
+    "LLM_VS_LLM": ModeConfig(
+        commentary_frequency="key_moments",
+        llm_style_white="aggressive",
+        llm_style_black="defensive",
+        max_moves=200,
+    ),
+    "LLM_VS_COMPUTER": ModeConfig(
+        commentary_frequency="key_moments",
+        llm_style_white="balanced",
+        stockfish_skill=15,
+    ),
+}
 
 
 class GameMode(Enum):
@@ -38,6 +92,11 @@ class GameMode(Enum):
             GameMode.LLM_VS_COMPUTER: "LLM vs Stockfish chess engine",
         }
         return descriptions.get(self, "Unknown mode")
+
+    @property
+    def defaults(self) -> ModeConfig:
+        """Get sensible default configuration for this mode."""
+        return _MODE_DEFAULTS.get(self.name, ModeConfig())
 
     @property
     def white_player_type(self) -> PlayerType:
