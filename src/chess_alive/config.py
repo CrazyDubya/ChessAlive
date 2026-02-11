@@ -5,9 +5,17 @@ from dataclasses import dataclass, field
 from typing import Optional
 from dotenv import load_dotenv
 
-from .credentials import load_api_key, load_saved_model
+from .credentials import load_api_key, load_saved_model, load_saved_provider
 
 load_dotenv()
+
+
+def _resolve_provider() -> str:
+    """Resolve LLM provider from env var, then saved credentials, then default."""
+    provider = os.getenv("CHESS_LLM_PROVIDER", "")
+    if provider:
+        return provider.lower()
+    return load_saved_provider() or "openrouter"
 
 
 def _resolve_api_key() -> str:
@@ -23,23 +31,67 @@ def _resolve_model() -> str:
     model = os.getenv("CHESS_LLM_MODEL", "")
     if model:
         return model
-    return load_saved_model() or "mistralai/devstral-2512:free"
+    return load_saved_model() or ""
+
+
+def _resolve_base_url() -> str:
+    """Resolve base URL from env var."""
+    return os.getenv("CHESS_LLM_BASE_URL", "")
+
+
+# Default models per provider
+PROVIDER_DEFAULTS: dict[str, dict[str, str]] = {
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "mistralai/devstral-2512:free",
+    },
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "model": "qwen2.5:3b",
+    },
+}
 
 
 @dataclass
 class LLMConfig:
-    """Configuration for LLM integration via OpenRouter."""
+    """Configuration for LLM integration."""
 
+    provider: str = field(default_factory=_resolve_provider)
     api_key: str = field(default_factory=_resolve_api_key)
-    base_url: str = "https://openrouter.ai/api/v1"
+    base_url: str = field(default_factory=_resolve_base_url)
     model: str = field(default_factory=_resolve_model)
     temperature: float = 0.7
     max_tokens: int = 300
+
+    def __post_init__(self):
+        """Fill in provider defaults for any empty fields."""
+        defaults = PROVIDER_DEFAULTS.get(self.provider, PROVIDER_DEFAULTS["openrouter"])
+        if not self.base_url:
+            self.base_url = defaults["base_url"]
+        if not self.model:
+            self.model = defaults["model"]
+        # Ollama doesn't need an API key — use a placeholder
+        if self.provider == "ollama" and not self.api_key:
+            self.api_key = "ollama"
 
     @property
     def is_configured(self) -> bool:
         """Check if LLM is properly configured."""
         return bool(self.api_key)
+
+    @property
+    def is_ollama(self) -> bool:
+        """Check if using Ollama backend."""
+        return self.provider == "ollama"
+
+    @property
+    def provider_display(self) -> str:
+        """Human-readable provider name."""
+        names = {
+            "openrouter": "OpenRouter",
+            "ollama": "Ollama (local)",
+        }
+        return names.get(self.provider, self.provider)
 
 
 @dataclass

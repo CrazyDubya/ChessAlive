@@ -69,7 +69,7 @@ class TestLLMClient:
         config = LLMConfig(api_key="")
         client = LLMClient(config)
 
-        with pytest.raises(RuntimeError, match="API key not configured"):
+        with pytest.raises(RuntimeError, match="LLM not configured"):
             await client.complete("test prompt")
 
     @pytest.mark.asyncio

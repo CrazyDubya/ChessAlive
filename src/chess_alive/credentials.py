@@ -67,14 +67,19 @@ def _secure_file(path: Path) -> None:
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
 
 
-def save_api_key(api_key: str, model: Optional[str] = None) -> Path:
-    """Save an OpenRouter API key securely.
+def save_api_key(
+    api_key: str,
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+) -> Path:
+    """Save an API key and provider config securely.
 
     The key is obfuscated and stored in a file with restricted permissions.
 
     Args:
-        api_key: The OpenRouter API key to save.
+        api_key: The API key to save (empty string for Ollama).
         model: Optional model name to save alongside the key.
+        provider: LLM provider ("openrouter" or "ollama").
 
     Returns:
         Path to the credentials file.
@@ -84,11 +89,13 @@ def save_api_key(api_key: str, model: Optional[str] = None) -> Path:
 
     cred_path = _get_credentials_path()
 
-    data: dict[str, str] = {
-        "openrouter_api_key": _obfuscate(api_key),
-    }
+    data: dict[str, str] = {}
+    if api_key:
+        data["openrouter_api_key"] = _obfuscate(api_key)
     if model:
         data["model"] = model
+    if provider:
+        data["provider"] = provider
 
     cred_path.write_text(json.dumps(data, indent=2))
     _secure_file(cred_path)
@@ -130,6 +137,24 @@ def load_saved_model() -> Optional[str]:
         data = json.loads(cred_path.read_text())
         model: Optional[str] = data.get("model")
         return model
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def load_saved_provider() -> Optional[str]:
+    """Load a saved provider name.
+
+    Returns:
+        The provider string, or None if not saved.
+    """
+    cred_path = _get_credentials_path()
+    if not cred_path.exists():
+        return None
+
+    try:
+        data = json.loads(cred_path.read_text())
+        provider: Optional[str] = data.get("provider")
+        return provider
     except (json.JSONDecodeError, KeyError):
         return None
 

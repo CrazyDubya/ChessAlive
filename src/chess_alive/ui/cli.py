@@ -12,8 +12,13 @@ from .display import BoardDisplay
 from ..modes.mode import GameMode
 from ..modes.match import Match, MatchConfig, MatchEvent
 from ..core.game import ChessGame, GameResult
-from ..config import get_config
-from ..credentials import save_api_key, load_api_key, clear_api_key, mask_key, has_saved_key
+from ..config import get_config, PROVIDER_DEFAULTS
+from ..credentials import (
+    save_api_key,
+    clear_api_key,
+    mask_key,
+    has_saved_key,
+)
 
 
 class CLI:
@@ -41,14 +46,17 @@ class CLI:
         """Print the welcome banner."""
         self.console.print(Panel(self.BANNER, style="bold blue"))
 
-    def _print_key_status(self):
-        """Print the current API key status."""
-        if self.config.llm.is_configured:
-            masked = mask_key(self.config.llm.api_key)
-            self.console.print(f"[green]API Key:[/green] {masked}")
-            self.console.print(f"[green]Model:[/green]   {self.config.llm.model}")
+    def _print_provider_status(self):
+        """Print the current LLM provider status."""
+        llm = self.config.llm
+        self.console.print(f"[green]Provider:[/green] {llm.provider_display}")
+        self.console.print(f"[green]Model:[/green]    {llm.model}")
+        if llm.is_ollama:
+            self.console.print(f"[green]Endpoint:[/green] {llm.base_url}")
+        elif llm.api_key and llm.api_key != "ollama":
+            self.console.print(f"[green]API Key:[/green]  {mask_key(llm.api_key)}")
         else:
-            self.console.print("[yellow]API Key: not configured[/yellow]")
+            self.console.print("[yellow]API Key:  not configured[/yellow]")
 
     def print_menu(self):
         """Print the main menu."""
@@ -70,8 +78,12 @@ class CLI:
             table.add_row(opt, mode, desc)
 
         self.console.print(table)
+
+        llm = self.config.llm
+        status = f"[dim]{llm.provider_display}: {llm.model}[/dim]"
+        self.console.print(f"\n{status}")
         self.console.print(
-            "\n[dim]Type 'key' to manage API key, or 'quit' to exit[/dim]"
+            "[dim]Type 'setup' to configure LLM provider, or 'quit' to exit[/dim]"
         )
 
     async def select_mode(self) -> Optional[GameMode]:
@@ -81,15 +93,15 @@ class CLI:
         while True:
             choice = Prompt.ask(
                 "\n[bold]Select game mode[/bold]",
-                choices=["1", "2", "3", "4", "5", "6", "key", "quit", "q"],
+                choices=["1", "2", "3", "4", "5", "6", "setup", "quit", "q"],
                 default="1",
             )
 
             if choice in ("quit", "q"):
                 return None
 
-            if choice == "key":
-                self._manage_api_key()
+            if choice == "setup":
+                self._setup_llm()
                 self.print_menu()
                 continue
 
@@ -106,29 +118,52 @@ class CLI:
             if mode:
                 return mode
 
-    def _manage_api_key(self):
-        """Interactive API key management."""
-        self.console.print("\n[bold]API Key Management[/bold]")
-        self._print_key_status()
+    def _setup_llm(self):
+        """Interactive LLM provider setup."""
+        self.console.print("\n[bold]LLM Provider Setup[/bold]")
+        self._print_provider_status()
         self.console.print()
 
         action = Prompt.ask(
             "Action",
-            choices=["set", "show", "clear", "back"],
+            choices=["ollama", "openrouter", "show", "clear", "back"],
             default="back",
         )
 
-        if action == "set":
-            self._set_api_key()
+        if action == "ollama":
+            self._setup_ollama()
+        elif action == "openrouter":
+            self._setup_openrouter()
         elif action == "show":
-            self._show_api_key()
+            self._print_provider_status()
         elif action == "clear":
-            self._clear_api_key()
+            self._clear_config()
 
-    def _set_api_key(self):
-        """Prompt user to enter and save an API key."""
+    def _setup_ollama(self):
+        """Configure Ollama as the LLM provider."""
+        self.console.print("\n[bold]Ollama Setup[/bold]")
         self.console.print(
-            "\n[dim]Get a free key at https://openrouter.ai/keys[/dim]"
+            "[dim]Ollama runs LLMs locally. Install: https://ollama.com[/dim]"
+        )
+        self.console.print(
+            "[dim]Then run: ollama pull qwen2.5:3b[/dim]\n"
+        )
+
+        default_model = PROVIDER_DEFAULTS["ollama"]["model"]
+        model = Prompt.ask("Ollama model", default=default_model)
+
+        path = save_api_key(api_key="", model=model, provider="ollama")
+        self.console.print(f"[green]Ollama config saved to {path}[/green]")
+
+        # Reload
+        self.config = get_config()
+        self._print_provider_status()
+
+    def _setup_openrouter(self):
+        """Configure OpenRouter as the LLM provider."""
+        self.console.print("\n[bold]OpenRouter Setup[/bold]")
+        self.console.print(
+            "[dim]Get a free key at https://openrouter.ai/keys[/dim]"
         )
         key = Prompt.ask("[bold]Enter your OpenRouter API key[/bold]")
 
@@ -138,49 +173,28 @@ class CLI:
 
         key = key.strip()
 
-        # Optionally set model
-        model = Prompt.ask(
-            "LLM model",
-            default=self.config.llm.model,
-        )
+        default_model = PROVIDER_DEFAULTS["openrouter"]["model"]
+        model = Prompt.ask("Model", default=default_model)
 
-        path = save_api_key(key, model if model != self.config.llm.model else None)
-        self.console.print(f"[green]Key saved to {path}[/green]")
+        path = save_api_key(api_key=key, model=model, provider="openrouter")
+        self.console.print(f"[green]Config saved to {path}[/green]")
         self.console.print(
             "[dim]File permissions restricted to owner only.[/dim]"
         )
 
-        # Reload config to pick up the new key
+        # Reload
         self.config = get_config()
-        self._print_key_status()
+        self._print_provider_status()
 
-    def _show_api_key(self):
-        """Show the currently configured API key (masked)."""
-        key = load_api_key()
-        if key:
-            self.console.print(f"\nSaved key: {mask_key(key)}")
-        else:
-            self.console.print("\n[yellow]No saved key found.[/yellow]")
-
-        if self.config.llm.api_key:
-            self.console.print(f"Active key: {mask_key(self.config.llm.api_key)}")
-            if has_saved_key():
-                source = "saved credentials"
-            else:
-                source = "environment variable"
-            self.console.print(f"[dim]Source: {source}[/dim]")
-        else:
-            self.console.print("[yellow]No active key configured.[/yellow]")
-
-    def _clear_api_key(self):
-        """Clear the saved API key."""
+    def _clear_config(self):
+        """Clear saved LLM configuration."""
         if not has_saved_key():
-            self.console.print("[yellow]No saved key to clear.[/yellow]")
+            self.console.print("[yellow]No saved config to clear.[/yellow]")
             return
 
-        if Confirm.ask("Remove saved API key?", default=False):
+        if Confirm.ask("Remove saved LLM config?", default=False):
             clear_api_key()
-            self.console.print("[green]Saved key removed.[/green]")
+            self.console.print("[green]Saved config removed.[/green]")
             self.config = get_config()
 
     def configure_match(self, mode: GameMode) -> MatchConfig:
@@ -329,11 +343,12 @@ class CLI:
         # Check configuration
         if not self.config.llm.is_configured:
             self.console.print(
-                "[yellow]Note: OpenRouter API key not set. "
+                "[yellow]Note: No LLM provider configured. "
                 "LLM modes will not work.[/yellow]"
             )
             self.console.print(
-                "[dim]Type 'key' at the menu to set up your API key.[/dim]\n"
+                "[dim]Type 'setup' at the menu to configure "
+                "Ollama (local) or OpenRouter.[/dim]\n"
             )
 
         while True:
@@ -345,10 +360,10 @@ class CLI:
             # Check requirements
             if mode.requires_openrouter and not self.config.llm.is_configured:
                 self.console.print(
-                    "[bold red]Error:[/bold red] This mode requires an OpenRouter API key."
+                    "[bold red]Error:[/bold red] This mode requires an LLM provider."
                 )
                 self.console.print(
-                    "[dim]Type 'key' to set up your API key.[/dim]"
+                    "[dim]Type 'setup' to configure Ollama or OpenRouter.[/dim]"
                 )
                 continue
 
