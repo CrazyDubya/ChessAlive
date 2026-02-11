@@ -19,12 +19,12 @@ class PieceType(Enum):
     @property
     def symbol(self) -> str:
         """Get the piece symbol."""
-        return chess.piece_symbol(self.value).upper()
+        return str(chess.piece_symbol(self.value)).upper()
 
     @property
     def name_str(self) -> str:
         """Get human-readable name."""
-        return chess.piece_name(self.value).title()
+        return str(chess.piece_name(self.value)).title()
 
 
 class Color(Enum):
@@ -262,7 +262,7 @@ class Piece:
         """Get the square name (e.g., 'e4')."""
         if self.square is None:
             return "captured"
-        return chess.square_name(self.square)
+        return str(chess.square_name(self.square))
 
     @property
     def display_name(self) -> str:

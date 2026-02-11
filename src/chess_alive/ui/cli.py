@@ -12,8 +12,13 @@ from .display import BoardDisplay
 from ..modes.mode import GameMode
 from ..modes.match import Match, MatchConfig, MatchEvent
 from ..core.game import ChessGame, GameResult
-from ..core.piece import Color
-from ..config import GameConfig, get_config
+from ..config import get_config, PROVIDER_DEFAULTS
+from ..credentials import (
+    save_api_key,
+    clear_api_key,
+    mask_key,
+    has_saved_key,
+)
 
 
 class CLI:
@@ -41,6 +46,18 @@ class CLI:
         """Print the welcome banner."""
         self.console.print(Panel(self.BANNER, style="bold blue"))
 
+    def _print_provider_status(self):
+        """Print the current LLM provider status."""
+        llm = self.config.llm
+        self.console.print(f"[green]Provider:[/green] {llm.provider_display}")
+        self.console.print(f"[green]Model:[/green]    {llm.model}")
+        if llm.is_ollama:
+            self.console.print(f"[green]Endpoint:[/green] {llm.base_url}")
+        elif llm.api_key and llm.api_key != "ollama":
+            self.console.print(f"[green]API Key:[/green]  {mask_key(llm.api_key)}")
+        else:
+            self.console.print("[yellow]API Key:  not configured[/yellow]")
+
     def print_menu(self):
         """Print the main menu."""
         table = Table(title="Game Modes", show_header=True)
@@ -61,21 +78,32 @@ class CLI:
             table.add_row(opt, mode, desc)
 
         self.console.print(table)
-        self.console.print("\n[dim]Type 'quit' to exit[/dim]")
+
+        llm = self.config.llm
+        status = f"[dim]{llm.provider_display}: {llm.model}[/dim]"
+        self.console.print(f"\n{status}")
+        self.console.print(
+            "[dim]Type 'setup' to configure LLM provider, or 'quit' to exit[/dim]"
+        )
 
     async def select_mode(self) -> Optional[GameMode]:
-        """Let user select a game mode."""
+        """Let user select a game mode. Returns None to quit."""
         self.print_menu()
 
         while True:
             choice = Prompt.ask(
                 "\n[bold]Select game mode[/bold]",
-                choices=["1", "2", "3", "4", "5", "6", "quit", "q"],
+                choices=["1", "2", "3", "4", "5", "6", "setup", "quit", "q"],
                 default="1",
             )
 
             if choice in ("quit", "q"):
                 return None
+
+            if choice == "setup":
+                self._setup_llm()
+                self.print_menu()
+                continue
 
             mode_map = {
                 "1": GameMode.PLAYER_VS_PLAYER,
@@ -90,9 +118,98 @@ class CLI:
             if mode:
                 return mode
 
+    def _setup_llm(self):
+        """Interactive LLM provider setup."""
+        self.console.print("\n[bold]LLM Provider Setup[/bold]")
+        self._print_provider_status()
+        self.console.print()
+
+        action = Prompt.ask(
+            "Action",
+            choices=["ollama", "openrouter", "show", "clear", "back"],
+            default="back",
+        )
+
+        if action == "ollama":
+            self._setup_ollama()
+        elif action == "openrouter":
+            self._setup_openrouter()
+        elif action == "show":
+            self._print_provider_status()
+        elif action == "clear":
+            self._clear_config()
+
+    def _setup_ollama(self):
+        """Configure Ollama as the LLM provider."""
+        self.console.print("\n[bold]Ollama Setup[/bold]")
+        self.console.print(
+            "[dim]Ollama runs LLMs locally. Install: https://ollama.com[/dim]"
+        )
+        self.console.print(
+            "[dim]Then run: ollama pull qwen2.5:3b[/dim]\n"
+        )
+
+        default_model = PROVIDER_DEFAULTS["ollama"]["model"]
+        model = Prompt.ask("Ollama model", default=default_model)
+
+        path = save_api_key(api_key="", model=model, provider="ollama")
+        self.console.print(f"[green]Ollama config saved to {path}[/green]")
+
+        # Reload
+        self.config = get_config()
+        self._print_provider_status()
+
+    def _setup_openrouter(self):
+        """Configure OpenRouter as the LLM provider."""
+        self.console.print("\n[bold]OpenRouter Setup[/bold]")
+        self.console.print(
+            "[dim]Get a free key at https://openrouter.ai/keys[/dim]"
+        )
+        key = Prompt.ask("[bold]Enter your OpenRouter API key[/bold]")
+
+        if not key or not key.strip():
+            self.console.print("[red]No key entered.[/red]")
+            return
+
+        key = key.strip()
+
+        default_model = PROVIDER_DEFAULTS["openrouter"]["model"]
+        model = Prompt.ask("Model", default=default_model)
+
+        path = save_api_key(api_key=key, model=model, provider="openrouter")
+        self.console.print(f"[green]Config saved to {path}[/green]")
+        self.console.print(
+            "[dim]File permissions restricted to owner only.[/dim]"
+        )
+
+        # Reload
+        self.config = get_config()
+        self._print_provider_status()
+
+    def _clear_config(self):
+        """Clear saved LLM configuration."""
+        if not has_saved_key():
+            self.console.print("[yellow]No saved config to clear.[/yellow]")
+            return
+
+        if Confirm.ask("Remove saved LLM config?", default=False):
+            clear_api_key()
+            self.console.print("[green]Saved config removed.[/green]")
+            self.config = get_config()
+
     def configure_match(self, mode: GameMode) -> MatchConfig:
-        """Configure match settings."""
-        config = MatchConfig(mode=mode)
+        """Configure match settings, pre-populated from mode defaults."""
+        defaults = mode.defaults
+        config = MatchConfig(
+            mode=mode,
+            commentary_frequency=defaults.commentary_frequency,
+            stockfish_depth=defaults.stockfish_depth,
+            stockfish_time=defaults.stockfish_time,
+            stockfish_skill=defaults.stockfish_skill,
+            llm_style_white=defaults.llm_style_white,
+            llm_style_black=defaults.llm_style_black,
+            max_moves=defaults.max_moves,
+        )
 
         self.console.print(f"\n[bold]Configuring {mode.description}[/bold]\n")
 
@@ -152,7 +269,7 @@ class CLI:
     async def handle_event(self, event: MatchEvent):
         """Handle match events for display."""
         if event.event_type == "game_start":
-            self.console.print(f"\n[bold green]Game started![/bold green]")
+            self.console.print("\n[bold green]Game started![/bold green]")
             self.console.print(f"White: {event.data['white']}")
             self.console.print(f"Black: {event.data['black']}")
             self.console.print()
@@ -168,7 +285,7 @@ class CLI:
             )
 
         elif event.event_type == "game_end":
-            self.console.print(f"\n[bold]Game Over![/bold]")
+            self.console.print("\n[bold]Game Over![/bold]")
             self.console.print(f"Result: {event.data['result']}")
             self.console.print(f"Total moves: {event.data['moves']}")
 
@@ -201,11 +318,16 @@ class CLI:
                 return GameResult.IN_PROGRESS
 
             # Run the match
-            result = await match.run()
+            result: GameResult = await match.run()
 
-            # Print final board
+            # Print final board and post-game summary
             self.console.print("\n[bold]Final Position:[/bold]")
             self.display.print_board(match.game)
+            self.display.print_post_game_summary(
+                match.game,
+                white_name=match_config.white_name,
+                black_name=match_config.black_name,
+            )
 
             # Print PGN
             if Confirm.ask("\nShow PGN?", default=False):
@@ -221,11 +343,12 @@ class CLI:
         # Check configuration
         if not self.config.llm.is_configured:
             self.console.print(
-                "[yellow]Note: OpenRouter API key not set. "
+                "[yellow]Note: No LLM provider configured. "
                 "LLM modes will not work.[/yellow]"
             )
             self.console.print(
-                "[dim]Set OPENROUTER_API_KEY environment variable to enable.[/dim]\n"
+                "[dim]Type 'setup' at the menu to configure "
+                "Ollama (local) or OpenRouter.[/dim]\n"
             )
 
         while True:
@@ -237,7 +360,10 @@ class CLI:
             # Check requirements
             if mode.requires_openrouter and not self.config.llm.is_configured:
                 self.console.print(
-                    "[bold red]Error:[/bold red] This mode requires OpenRouter API key."
+                    "[bold red]Error:[/bold red] This mode requires an LLM provider."
+                )
+                self.console.print(
+                    "[dim]Type 'setup' to configure Ollama or OpenRouter.[/dim]"
                 )
                 continue
 

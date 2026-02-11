@@ -8,7 +8,7 @@ from rich.text import Text
 from rich.style import Style
 import chess
 
-from ..core.game import ChessGame, MoveRecord
+from ..core.game import ChessGame, MoveRecord, GameResult
 from ..core.piece import Color, PieceType
 
 
@@ -46,6 +46,17 @@ class BoardDisplay:
         (chess.KNIGHT, chess.BLACK): "n",
         (chess.PAWN, chess.BLACK): "p",
     }
+
+    # Styles
+    STYLE_WHITE_MOVE = Style(color="white", bold=True)
+    STYLE_BLACK_MOVE = Style(color="bright_black", bold=True)
+    STYLE_CAPTURE = Style(color="red")
+    STYLE_CHECK = Style(color="red", bold=True)
+    STYLE_CHECKMATE = Style(color="bright_red", bold=True, underline=True)
+    STYLE_CASTLING = Style(color="cyan")
+    STYLE_PROMOTION = Style(color="magenta", bold=True)
+    STYLE_HEADER = Style(color="bright_blue", bold=True)
+    STYLE_DIM = Style(dim=True)
 
     def __init__(
         self,
@@ -165,6 +176,27 @@ class BoardDisplay:
 
         self.console.print(" | ".join(status_parts))
 
+    def _styled_san(self, record: MoveRecord) -> Text:
+        """Create a styled Text object for a move in SAN notation."""
+        text = Text(record.san)
+
+        if record.is_checkmate:
+            text.stylize(self.STYLE_CHECKMATE)
+        elif record.is_check:
+            text.stylize(self.STYLE_CHECK)
+        elif record.is_promotion:
+            text.stylize(self.STYLE_PROMOTION)
+        elif record.is_castling:
+            text.stylize(self.STYLE_CASTLING)
+        elif record.captured_piece:
+            text.stylize(self.STYLE_CAPTURE)
+        elif record.piece.color == Color.WHITE:
+            text.stylize(self.STYLE_WHITE_MOVE)
+        else:
+            text.stylize(self.STYLE_BLACK_MOVE)
+
+        return text
+
     def print_move(self, record: MoveRecord, move_number: int):
         """Print a move record."""
         color = "white" if record.piece.color == Color.WHITE else "black"
@@ -182,6 +214,176 @@ class BoardDisplay:
             parts.append("[red]CHECK![/red]")
 
         self.console.print(" ".join(parts))
+
+    def print_move_history(self, game: ChessGame, last_n: Optional[int] = None):
+        """Print move history as a styled Rich Table.
+
+        Args:
+            game: The game whose history to display.
+            last_n: If set, only show the last N full moves.
+        """
+        history = game.move_history
+        if not history:
+            self.console.print(Text("No moves yet.", style=self.STYLE_DIM))
+            return
+
+        table = Table(
+            title="Move History",
+            show_header=True,
+            header_style=self.STYLE_HEADER,
+            border_style="dim",
+            pad_edge=False,
+            collapse_padding=True,
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("White", min_width=8)
+        table.add_column("Black", min_width=8)
+        table.add_column("Notes", style="dim", max_width=30)
+
+        # Pair moves into (white, black) rows
+        pairs: list[tuple[MoveRecord, Optional[MoveRecord]]] = []
+        for i in range(0, len(history), 2):
+            white = history[i]
+            black = history[i + 1] if i + 1 < len(history) else None
+            pairs.append((white, black))
+
+        if last_n is not None:
+            pairs = pairs[-last_n:]
+
+        for idx, (white, black) in enumerate(pairs):
+            move_num = (len(pairs) - len(pairs) + idx + 1) if last_n else (idx + 1)
+            # Adjust move number when slicing
+            if last_n is not None:
+                move_num = len(game.move_history) // 2 - len(pairs) + idx + 1
+
+            white_text = self._styled_san(white)
+            black_text = self._styled_san(black) if black else Text("...", style=self.STYLE_DIM)
+
+            notes = self._move_notes(white, black)
+
+            table.add_row(str(move_num), white_text, black_text, notes)
+
+        self.console.print(table)
+
+    def _move_notes(
+        self, white: MoveRecord, black: Optional[MoveRecord]
+    ) -> Text:
+        """Build a notes column for a move pair."""
+        parts: list[str] = []
+
+        for record in [white, black]:
+            if record is None:
+                continue
+            if record.captured_piece:
+                sym = self.get_piece_symbol(
+                    chess.Piece(record.captured_piece.piece_type.value,
+                                record.captured_piece.color.value)
+                )
+                parts.append(f"x{sym}")
+            if record.is_castling:
+                parts.append("castle")
+            if record.is_promotion:
+                parts.append("promo")
+
+        return Text(" ".join(parts), style=self.STYLE_DIM) if parts else Text("")
+
+    def print_game_stats(self, game: ChessGame):
+        """Print a statistics table for the game."""
+        table = Table(
+            title="Game Statistics",
+            show_header=True,
+            header_style=self.STYLE_HEADER,
+            border_style="dim",
+        )
+        table.add_column("Stat", style="bold")
+        table.add_column("White", justify="center")
+        table.add_column("Black", justify="center")
+
+        white_moves = [r for r in game.move_history if r.piece.color == Color.WHITE]
+        black_moves = [r for r in game.move_history if r.piece.color == Color.BLACK]
+
+        table.add_row(
+            "Moves",
+            str(len(white_moves)),
+            str(len(black_moves)),
+        )
+        table.add_row(
+            "Captures",
+            str(sum(1 for r in white_moves if r.captured_piece)),
+            str(sum(1 for r in black_moves if r.captured_piece)),
+        )
+        table.add_row(
+            "Checks",
+            str(sum(1 for r in white_moves if r.is_check)),
+            str(sum(1 for r in black_moves if r.is_check)),
+        )
+        table.add_row(
+            "Castled",
+            "Yes" if any(r.is_castling for r in white_moves) else "No",
+            "Yes" if any(r.is_castling for r in black_moves) else "No",
+        )
+        table.add_row(
+            "Promotions",
+            str(sum(1 for r in white_moves if r.is_promotion)),
+            str(sum(1 for r in black_moves if r.is_promotion)),
+        )
+
+        # Material remaining
+        white_pieces = game.get_pieces_by_color(Color.WHITE)
+        black_pieces = game.get_pieces_by_color(Color.BLACK)
+
+        white_mat = self._material_string(white_pieces)
+        black_mat = self._material_string(black_pieces)
+
+        table.add_row("Material", white_mat, black_mat)
+        table.add_row(
+            "Pieces left",
+            str(len(white_pieces)),
+            str(len(black_pieces)),
+        )
+
+        self.console.print(table)
+
+    def _material_string(self, pieces: list) -> str:
+        """Build a compact string showing remaining material."""
+        symbols = []
+        for pt in [PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP,
+                    PieceType.KNIGHT, PieceType.PAWN]:
+            count = sum(1 for p in pieces if p.piece_type == pt)
+            if count > 0:
+                sym = self.get_piece_symbol(
+                    chess.Piece(pt.value, pieces[0].color.value)
+                )
+                symbols.append(f"{sym}{count}" if count > 1 else sym)
+        return " ".join(symbols)
+
+    def print_post_game_summary(
+        self,
+        game: ChessGame,
+        white_name: str = "White",
+        black_name: str = "Black",
+    ):
+        """Print a full post-game summary panel with stats + move list."""
+        result = game.result
+        if result == GameResult.WHITE_WINS:
+            result_text = Text(f"{white_name} wins!", style=Style(color="bright_green", bold=True))
+        elif result == GameResult.BLACK_WINS:
+            result_text = Text(f"{black_name} wins!", style=Style(color="bright_green", bold=True))
+        elif result == GameResult.DRAW:
+            result_text = Text("Draw", style=Style(color="yellow", bold=True))
+        else:
+            result_text = Text("Game in progress", style=self.STYLE_DIM)
+
+        header = Text.assemble(
+            ("Result: ", self.STYLE_HEADER),
+            result_text,
+            ("  |  ", self.STYLE_DIM),
+            (f"Moves: {len(game.move_history)}", self.STYLE_DIM),
+        )
+        self.console.print(Panel(header, border_style="bright_blue"))
+
+        self.print_game_stats(game)
+        self.print_move_history(game)
 
     def print_commentary(self, piece_name: str, text: str):
         """Print piece commentary."""
@@ -209,7 +411,10 @@ class BoardDisplay:
         )
 
         if white_captured or black_captured:
-            self.console.print(f"Captured: White: {white_captured or 'none'} | Black: {black_captured or 'none'}")
+            self.console.print(
+                f"Captured: White: {white_captured or 'none'} | "
+                f"Black: {black_captured or 'none'}"
+            )
 
     def print_legal_moves(self, game: ChessGame):
         """Print all legal moves."""
@@ -220,11 +425,11 @@ class BoardDisplay:
         """Print the game result."""
         result = game.result
 
-        if result == result.WHITE_WINS:
+        if result == GameResult.WHITE_WINS:
             self.console.print("[bold]Result: White wins![/bold]")
-        elif result == result.BLACK_WINS:
+        elif result == GameResult.BLACK_WINS:
             self.console.print("[bold]Result: Black wins![/bold]")
-        elif result == result.DRAW:
+        elif result == GameResult.DRAW:
             self.console.print("[bold]Result: Draw[/bold]")
         else:
             self.console.print("[dim]Game in progress[/dim]")

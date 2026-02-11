@@ -1,6 +1,5 @@
-"""OpenRouter API client for LLM integration."""
+"""LLM API client supporting OpenRouter and Ollama (OpenAI-compatible)."""
 
-import asyncio
 from dataclasses import dataclass
 from typing import Optional, AsyncIterator
 import httpx
@@ -20,7 +19,7 @@ class LLMResponse:
 
 
 class LLMClient:
-    """Client for OpenRouter API (OpenAI-compatible)."""
+    """Client for OpenAI-compatible APIs (OpenRouter, Ollama, etc.)."""
 
     def __init__(self, config: Optional[LLMConfig] = None):
         """
@@ -35,15 +34,19 @@ class LLMClient:
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create the HTTP client."""
         if self._client is None or self._client.is_closed:
+            headers: dict[str, str] = {
+                "Content-Type": "application/json",
+            }
+            # OpenRouter needs auth + tracking headers; Ollama doesn't
+            if not self.config.is_ollama:
+                headers["Authorization"] = f"Bearer {self.config.api_key}"
+                headers["HTTP-Referer"] = "https://github.com/chess-alive"
+                headers["X-Title"] = "ChessAlive"
+
             self._client = httpx.AsyncClient(
                 base_url=self.config.base_url,
-                headers={
-                    "Authorization": f"Bearer {self.config.api_key}",
-                    "HTTP-Referer": "https://github.com/chess-alive",
-                    "X-Title": "ChessAlive",
-                    "Content-Type": "application/json",
-                },
-                timeout=60.0,
+                headers=headers,
+                timeout=120.0,  # Ollama local inference can be slow
             )
         return self._client
 
@@ -89,8 +92,8 @@ class LLMClient:
         """
         if not self.config.is_configured:
             raise RuntimeError(
-                "OpenRouter API key not configured. "
-                "Set OPENROUTER_API_KEY environment variable."
+                "LLM not configured. Set up a provider via 'key' menu "
+                "or set OPENROUTER_API_KEY / CHESS_LLM_PROVIDER env vars."
             )
 
         client = await self._get_client()
@@ -100,12 +103,15 @@ class LLMClient:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        payload = {
+        payload: dict = {
             "model": model or self.config.model,
             "messages": messages,
             "temperature": temperature if temperature is not None else self.config.temperature,
-            "max_tokens": max_tokens or self.config.max_tokens,
         }
+        # Ollama ignores max_tokens but supports num_predict via options;
+        # OpenAI-compat layer uses max_tokens.
+        if max_tokens or self.config.max_tokens:
+            payload["max_tokens"] = max_tokens or self.config.max_tokens
 
         try:
             response = await client.post("/chat/completions", json=payload)
@@ -130,7 +136,16 @@ class LLMClient:
                 error_detail = error_data.get("error", {}).get("message", str(e))
             except Exception:
                 error_detail = str(e)
-            raise LLMError(f"OpenRouter API error: {error_detail}") from e
+            provider = self.config.provider_display
+            raise LLMError(f"{provider} API error: {error_detail}") from e
+
+        except httpx.ConnectError as e:
+            if self.config.is_ollama:
+                raise LLMError(
+                    "Cannot connect to Ollama. Is it running? "
+                    "Start it with: ollama serve"
+                ) from e
+            raise LLMError(f"Connection failed: {e}") from e
 
         except httpx.RequestError as e:
             raise LLMError(f"Request failed: {e}") from e
@@ -151,8 +166,8 @@ class LLMClient:
         """
         if not self.config.is_configured:
             raise RuntimeError(
-                "OpenRouter API key not configured. "
-                "Set OPENROUTER_API_KEY environment variable."
+                "LLM not configured. Set up a provider via 'key' menu "
+                "or set OPENROUTER_API_KEY / CHESS_LLM_PROVIDER env vars."
             )
 
         client = await self._get_client()
@@ -189,7 +204,7 @@ class LLMClient:
                             continue
 
         except httpx.HTTPStatusError as e:
-            raise LLMError(f"OpenRouter API error: {e}") from e
+            raise LLMError(f"{self.config.provider_display} API error: {e}") from e
 
     async def close(self):
         """Close the HTTP client."""
@@ -223,4 +238,5 @@ async def get_completion(
         response = await get_completion("What is 2+2?")
     """
     async with LLMClient(config) as client:
-        return await client.complete(prompt, system_prompt)
+        result: str = await client.complete(prompt, system_prompt)
+        return result

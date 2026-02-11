@@ -1,6 +1,5 @@
 """Match orchestration - runs a complete chess game."""
 
-import asyncio
 from dataclasses import dataclass, field
 from typing import Optional, Callable, Awaitable
 from datetime import datetime
@@ -13,7 +12,7 @@ from ..players.human import HumanPlayer
 from ..players.computer import ComputerPlayer
 from ..players.llm_player import LLMPlayer
 from ..llm.client import LLMClient
-from ..llm.commentary import CommentaryEngine, Commentary
+from ..llm.commentary import CommentaryEngine
 from ..config import GameConfig
 
 
@@ -73,7 +72,7 @@ class Match:
         self._llm_client: Optional[LLMClient] = None
         self._running = False
 
-    async def _emit_event(self, event_type: str, data: dict = None):
+    async def _emit_event(self, event_type: str, data: Optional[dict] = None):  # type: ignore[type-arg]
         """Emit an event."""
         event = MatchEvent(event_type=event_type, data=data or {})
         self.events.append(event)

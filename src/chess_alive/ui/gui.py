@@ -1,16 +1,16 @@
 """Tkinter-based GUI for ChessAlive with commentary display."""
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext
 import asyncio
 import threading
 from typing import Optional, Callable
 import chess
 
 from ..core.game import ChessGame, MoveRecord
-from ..core.piece import Color, PieceType
+from ..core.piece import Color
 from ..llm.client import LLMClient
-from ..llm.commentary import CommentaryEngine, Commentary
+from ..llm.commentary import CommentaryEngine
 from ..config import get_config
 
 
@@ -289,7 +289,7 @@ class StatusBar(tk.Frame):
         )
         self.status_label.pack(side=tk.RIGHT)
 
-    def update(self, game: ChessGame):
+    def update_status(self, game: ChessGame) -> None:
         """Update status from game state."""
         turn = "White" if game.current_turn == Color.WHITE else "Black"
         self.turn_label.configure(text=f"{turn} to move")
@@ -350,7 +350,7 @@ class ChessAliveGUI:
         # Bottom - Status bar
         self.status_bar = StatusBar(self.root)
         self.status_bar.pack(fill=tk.X, side=tk.BOTTOM)
-        self.status_bar.update(self.game)
+        self.status_bar.update_status(self.game)
 
     def _setup_menu(self):
         """Set up the menu bar."""
@@ -371,7 +371,7 @@ class ChessAliveGUI:
 
     def _on_move(self, record: MoveRecord):
         """Handle a move being made."""
-        self.status_bar.update(self.game)
+        self.status_bar.update_status(self.game)
         self.commentary_panel.add_move_info(record)
 
         # Generate commentary asynchronously
@@ -391,6 +391,7 @@ class ChessAliveGUI:
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            assert self.commentary_engine is not None
             commentaries = loop.run_until_complete(
                 self.commentary_engine.generate_move_commentary(self.game, record)
             )
@@ -403,7 +404,7 @@ class ChessAliveGUI:
                     c.text,
                     c.piece.color,
                 ))
-        except Exception as e:
+        except Exception:
             # Use fallback on error
             self.root.after(0, lambda: self._add_fallback_commentary(record))
 
@@ -427,7 +428,7 @@ class ChessAliveGUI:
         """Start a new game."""
         self.game.reset()
         self.board.set_game(self.game)
-        self.status_bar.update(self.game)
+        self.status_bar.update_status(self.game)
         self.commentary_panel.clear()
 
         # Opening commentary

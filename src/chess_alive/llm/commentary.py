@@ -1,7 +1,6 @@
 """LLM-powered commentary system for chess pieces."""
 
-import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 import random
 
@@ -187,7 +186,7 @@ Give a brief, in-character comment about this situation (1-2 sentences)."""
 
     def _generic_fallback(self, situation: str) -> str:
         """Generic fallback for situation commentary."""
-        return f"The game continues..."
+        return "The game continues..."
 
 
 class CommentaryEngine:
@@ -338,7 +337,7 @@ class CommentaryEngine:
         self, game: ChessGame
     ) -> list[Commentary]:
         """Generate ending commentary."""
-        commentaries = []
+        commentaries: list[Commentary] = []
 
         result = game.result
         if result == game.result.IN_PROGRESS:
