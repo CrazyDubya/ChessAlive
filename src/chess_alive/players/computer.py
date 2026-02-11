@@ -1,6 +1,5 @@
 """Computer player using Stockfish chess engine."""
 
-import asyncio
 from typing import Optional
 import chess
 import chess.engine
@@ -69,6 +68,7 @@ class ComputerPlayer(Player):
 
         await self._ensure_engine()
 
+        assert self._engine is not None
         try:
             # Get best move with time limit
             result = await self._engine.play(
@@ -92,6 +92,7 @@ class ComputerPlayer(Player):
         Returns evaluation info from the engine.
         """
         await self._ensure_engine()
+        assert self._engine is not None
 
         try:
             info = await self._engine.analyse(
@@ -117,7 +118,8 @@ class ComputerPlayer(Player):
                 # Return large value for mate
                 mate_in = score.mate()
                 return 10000 if mate_in > 0 else -10000
-            return score.score() / 100  # Convert centipawns to pawns
+            cp = score.score()
+            return float(cp) / 100 if cp is not None else None
 
         return None
 

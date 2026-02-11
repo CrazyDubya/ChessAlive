@@ -2,14 +2,11 @@
 
 from typing import Optional
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
-from rich.style import Style
 import chess
 
 from ..core.game import ChessGame, MoveRecord
-from ..core.piece import Color, PieceType
+from ..core.piece import Color
 
 
 class BoardDisplay:

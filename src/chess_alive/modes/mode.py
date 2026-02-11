@@ -1,10 +1,8 @@
 """Game mode definitions."""
 
 from enum import Enum, auto
-from dataclasses import dataclass
-from typing import Type
 
-from ..players.base import Player, PlayerType
+from ..players.base import PlayerType
 
 
 class GameMode(Enum):

@@ -1,9 +1,13 @@
 """LLM-based player that uses OpenRouter to make chess moves."""
 
-import json
+from __future__ import annotations
+
 import re
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import chess
+
+if TYPE_CHECKING:
+    from ..llm.client import LLMClient
 
 from .base import Player, PlayerType
 from ..core.game import ChessGame
@@ -232,7 +236,3 @@ MOVE: <your chosen move>"""
             move = self._fallback_move_extraction(response, game)
 
         return move, reasoning
-
-
-# Import at end to avoid circular imports
-from ..llm.client import LLMClient

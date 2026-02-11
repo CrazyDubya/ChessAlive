@@ -122,32 +122,32 @@ class ChessGame:
     @property
     def is_check(self) -> bool:
         """Check if current player is in check."""
-        return self.board.is_check()
+        return bool(self.board.is_check())
 
     @property
     def is_checkmate(self) -> bool:
         """Check if current player is in checkmate."""
-        return self.board.is_checkmate()
+        return bool(self.board.is_checkmate())
 
     @property
     def is_stalemate(self) -> bool:
         """Check if game is in stalemate."""
-        return self.board.is_stalemate()
+        return bool(self.board.is_stalemate())
 
     @property
     def is_game_over(self) -> bool:
         """Check if the game is over."""
-        return self.board.is_game_over()
+        return bool(self.board.is_game_over())
 
     @property
     def fen(self) -> str:
         """Get the FEN string of current position."""
-        return self.board.fen()
+        return str(self.board.fen())
 
     @property
     def fullmove_number(self) -> int:
         """Get the current full move number."""
-        return self.board.fullmove_number
+        return int(self.board.fullmove_number)
 
     def get_legal_moves(self) -> list[chess.Move]:
         """Get all legal moves for the current player."""

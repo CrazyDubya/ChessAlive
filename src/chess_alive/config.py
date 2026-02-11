@@ -5,16 +5,34 @@ from dataclasses import dataclass, field
 from typing import Optional
 from dotenv import load_dotenv
 
+from .credentials import load_api_key, load_saved_model
+
 load_dotenv()
+
+
+def _resolve_api_key() -> str:
+    """Resolve API key from env var, then saved credentials."""
+    key = os.getenv("OPENROUTER_API_KEY", "")
+    if key:
+        return key
+    return load_api_key() or ""
+
+
+def _resolve_model() -> str:
+    """Resolve model from env var, then saved credentials, then default."""
+    model = os.getenv("CHESS_LLM_MODEL", "")
+    if model:
+        return model
+    return load_saved_model() or "mistralai/devstral-2512:free"
 
 
 @dataclass
 class LLMConfig:
     """Configuration for LLM integration via OpenRouter."""
 
-    api_key: str = field(default_factory=lambda: os.getenv("OPENROUTER_API_KEY", ""))
+    api_key: str = field(default_factory=_resolve_api_key)
     base_url: str = "https://openrouter.ai/api/v1"
-    model: str = field(default_factory=lambda: os.getenv("CHESS_LLM_MODEL", "mistralai/devstral-2512:free"))
+    model: str = field(default_factory=_resolve_model)
     temperature: float = 0.7
     max_tokens: int = 300
 

@@ -12,8 +12,8 @@ from .display import BoardDisplay
 from ..modes.mode import GameMode
 from ..modes.match import Match, MatchConfig, MatchEvent
 from ..core.game import ChessGame, GameResult
-from ..core.piece import Color
-from ..config import GameConfig, get_config
+from ..config import get_config
+from ..credentials import save_api_key, load_api_key, clear_api_key, mask_key, has_saved_key
 
 
 class CLI:
@@ -41,6 +41,15 @@ class CLI:
         """Print the welcome banner."""
         self.console.print(Panel(self.BANNER, style="bold blue"))
 
+    def _print_key_status(self):
+        """Print the current API key status."""
+        if self.config.llm.is_configured:
+            masked = mask_key(self.config.llm.api_key)
+            self.console.print(f"[green]API Key:[/green] {masked}")
+            self.console.print(f"[green]Model:[/green]   {self.config.llm.model}")
+        else:
+            self.console.print("[yellow]API Key: not configured[/yellow]")
+
     def print_menu(self):
         """Print the main menu."""
         table = Table(title="Game Modes", show_header=True)
@@ -61,21 +70,28 @@ class CLI:
             table.add_row(opt, mode, desc)
 
         self.console.print(table)
-        self.console.print("\n[dim]Type 'quit' to exit[/dim]")
+        self.console.print(
+            "\n[dim]Type 'key' to manage API key, or 'quit' to exit[/dim]"
+        )
 
     async def select_mode(self) -> Optional[GameMode]:
-        """Let user select a game mode."""
+        """Let user select a game mode. Returns None to quit."""
         self.print_menu()
 
         while True:
             choice = Prompt.ask(
                 "\n[bold]Select game mode[/bold]",
-                choices=["1", "2", "3", "4", "5", "6", "quit", "q"],
+                choices=["1", "2", "3", "4", "5", "6", "key", "quit", "q"],
                 default="1",
             )
 
             if choice in ("quit", "q"):
                 return None
+
+            if choice == "key":
+                self._manage_api_key()
+                self.print_menu()
+                continue
 
             mode_map = {
                 "1": GameMode.PLAYER_VS_PLAYER,
@@ -89,6 +105,83 @@ class CLI:
             mode = mode_map.get(choice)
             if mode:
                 return mode
+
+    def _manage_api_key(self):
+        """Interactive API key management."""
+        self.console.print("\n[bold]API Key Management[/bold]")
+        self._print_key_status()
+        self.console.print()
+
+        action = Prompt.ask(
+            "Action",
+            choices=["set", "show", "clear", "back"],
+            default="back",
+        )
+
+        if action == "set":
+            self._set_api_key()
+        elif action == "show":
+            self._show_api_key()
+        elif action == "clear":
+            self._clear_api_key()
+
+    def _set_api_key(self):
+        """Prompt user to enter and save an API key."""
+        self.console.print(
+            "\n[dim]Get a free key at https://openrouter.ai/keys[/dim]"
+        )
+        key = Prompt.ask("[bold]Enter your OpenRouter API key[/bold]")
+
+        if not key or not key.strip():
+            self.console.print("[red]No key entered.[/red]")
+            return
+
+        key = key.strip()
+
+        # Optionally set model
+        model = Prompt.ask(
+            "LLM model",
+            default=self.config.llm.model,
+        )
+
+        path = save_api_key(key, model if model != self.config.llm.model else None)
+        self.console.print(f"[green]Key saved to {path}[/green]")
+        self.console.print(
+            "[dim]File permissions restricted to owner only.[/dim]"
+        )
+
+        # Reload config to pick up the new key
+        self.config = get_config()
+        self._print_key_status()
+
+    def _show_api_key(self):
+        """Show the currently configured API key (masked)."""
+        key = load_api_key()
+        if key:
+            self.console.print(f"\nSaved key: {mask_key(key)}")
+        else:
+            self.console.print("\n[yellow]No saved key found.[/yellow]")
+
+        if self.config.llm.api_key:
+            self.console.print(f"Active key: {mask_key(self.config.llm.api_key)}")
+            if has_saved_key():
+                source = "saved credentials"
+            else:
+                source = "environment variable"
+            self.console.print(f"[dim]Source: {source}[/dim]")
+        else:
+            self.console.print("[yellow]No active key configured.[/yellow]")
+
+    def _clear_api_key(self):
+        """Clear the saved API key."""
+        if not has_saved_key():
+            self.console.print("[yellow]No saved key to clear.[/yellow]")
+            return
+
+        if Confirm.ask("Remove saved API key?", default=False):
+            clear_api_key()
+            self.console.print("[green]Saved key removed.[/green]")
+            self.config = get_config()
 
     def configure_match(self, mode: GameMode) -> MatchConfig:
         """Configure match settings."""
@@ -152,7 +245,7 @@ class CLI:
     async def handle_event(self, event: MatchEvent):
         """Handle match events for display."""
         if event.event_type == "game_start":
-            self.console.print(f"\n[bold green]Game started![/bold green]")
+            self.console.print("\n[bold green]Game started![/bold green]")
             self.console.print(f"White: {event.data['white']}")
             self.console.print(f"Black: {event.data['black']}")
             self.console.print()
@@ -168,7 +261,7 @@ class CLI:
             )
 
         elif event.event_type == "game_end":
-            self.console.print(f"\n[bold]Game Over![/bold]")
+            self.console.print("\n[bold]Game Over![/bold]")
             self.console.print(f"Result: {event.data['result']}")
             self.console.print(f"Total moves: {event.data['moves']}")
 
@@ -201,7 +294,7 @@ class CLI:
                 return GameResult.IN_PROGRESS
 
             # Run the match
-            result = await match.run()
+            result: GameResult = await match.run()
 
             # Print final board
             self.console.print("\n[bold]Final Position:[/bold]")
@@ -225,7 +318,7 @@ class CLI:
                 "LLM modes will not work.[/yellow]"
             )
             self.console.print(
-                "[dim]Set OPENROUTER_API_KEY environment variable to enable.[/dim]\n"
+                "[dim]Type 'key' at the menu to set up your API key.[/dim]\n"
             )
 
         while True:
@@ -237,7 +330,10 @@ class CLI:
             # Check requirements
             if mode.requires_openrouter and not self.config.llm.is_configured:
                 self.console.print(
-                    "[bold red]Error:[/bold red] This mode requires OpenRouter API key."
+                    "[bold red]Error:[/bold red] This mode requires an OpenRouter API key."
+                )
+                self.console.print(
+                    "[dim]Type 'key' to set up your API key.[/dim]"
                 )
                 continue
 

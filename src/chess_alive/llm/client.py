@@ -1,6 +1,5 @@
 """OpenRouter API client for LLM integration."""
 
-import asyncio
 from dataclasses import dataclass
 from typing import Optional, AsyncIterator
 import httpx
@@ -223,4 +222,5 @@ async def get_completion(
         response = await get_completion("What is 2+2?")
     """
     async with LLMClient(config) as client:
-        return await client.complete(prompt, system_prompt)
+        result: str = await client.complete(prompt, system_prompt)
+        return result
