@@ -12,7 +12,7 @@ class TestGameMode:
     def test_all_modes_exist(self):
         """Test all expected modes exist."""
         modes = list(GameMode)
-        assert len(modes) == 6
+        assert len(modes) == 7
 
         assert GameMode.PLAYER_VS_PLAYER in modes
         assert GameMode.PLAYER_VS_COMPUTER in modes
@@ -20,6 +20,7 @@ class TestGameMode:
         assert GameMode.PLAYER_VS_LLM in modes
         assert GameMode.LLM_VS_LLM in modes
         assert GameMode.LLM_VS_COMPUTER in modes
+        assert GameMode.TEACHING in modes
 
     def test_mode_descriptions(self):
         """Test mode descriptions."""
@@ -125,7 +126,7 @@ class TestGameMode:
         """Test listing all modes."""
         all_modes = GameMode.list_all()
 
-        assert len(all_modes) == 6
+        assert len(all_modes) == 7
         assert all(isinstance(m, tuple) for m in all_modes)
         assert all(isinstance(m[0], GameMode) for m in all_modes)
         assert all(isinstance(m[1], str) for m in all_modes)

@@ -2,7 +2,7 @@
 
 import asyncio
 import sys
-from typing import Optional
+from typing import Optional, Callable, Awaitable
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
@@ -41,6 +41,8 @@ class CLI:
         self.display = BoardDisplay(self.console)
         self.config = get_config()
         self._current_match: Optional[Match] = None
+        # Callback set to TeachingAdvisor.analyze during teaching mode matches
+        self._pre_move_advisor: Optional[Callable[[ChessGame], Awaitable]] = None
 
     def print_banner(self):
         """Print the welcome banner."""
@@ -72,6 +74,7 @@ class CLI:
             ("4", "pvl", "Player vs LLM - Human vs AI language model"),
             ("5", "lvl", "LLM vs LLM - Two AI language models"),
             ("6", "lvc", "LLM vs Computer - AI language model vs Stockfish"),
+            ("7", "teaching", "Teaching mode - Human vs Stockfish with LLM coaching"),
         ]
 
         for opt, mode, desc in modes:
@@ -93,7 +96,7 @@ class CLI:
         while True:
             choice = Prompt.ask(
                 "\n[bold]Select game mode[/bold]",
-                choices=["1", "2", "3", "4", "5", "6", "setup", "quit", "q"],
+                choices=["1", "2", "3", "4", "5", "6", "7", "setup", "quit", "q"],
                 default="1",
             )
 
@@ -112,6 +115,7 @@ class CLI:
                 "4": GameMode.PLAYER_VS_LLM,
                 "5": GameMode.LLM_VS_LLM,
                 "6": GameMode.LLM_VS_COMPUTER,
+                "7": GameMode.TEACHING,
             }
 
             mode = mode_map.get(choice)
@@ -213,6 +217,20 @@ class CLI:
 
         self.console.print(f"\n[bold]Configuring {mode.description}[/bold]\n")
 
+        # Teaching mode - enable coaching and skip irrelevant options
+        if mode == GameMode.TEACHING:
+            config.enable_teaching = True
+            config.white_name = Prompt.ask("Your name (White)", default="Student")
+            config.black_name = "Stockfish (Black)"
+            config.enable_commentary = False
+
+            skill = Prompt.ask(
+                "Stockfish opponent skill level (0-20, lower = easier)",
+                default="10",
+            )
+            config.stockfish_skill = int(skill)
+            return config
+
         # Get player names
         if mode.white_player_type.name == "HUMAN":
             config.white_name = Prompt.ask("White player name", default="Player 1")
@@ -297,6 +315,16 @@ class CLI:
         self.display.print_game_status(game)
         self.display.print_captured_pieces(game)
 
+        # Show teaching advice when in teaching mode
+        if self._pre_move_advisor is not None:
+            try:
+                advice = await self._pre_move_advisor(game)
+                self.display.print_teaching_advice(advice)
+            except Exception as e:
+                self.console.print(
+                    f"[yellow]Teaching analysis unavailable: {e}[/yellow]"
+                )
+
         # Get input
         return await asyncio.get_event_loop().run_in_executor(
             None,
@@ -309,6 +337,7 @@ class CLI:
         """Run a complete match."""
         async with Match(match_config, self.config, self.handle_event) as match:
             self._current_match = match
+            self._pre_move_advisor = None
 
             # Set up the match
             try:
@@ -316,6 +345,14 @@ class CLI:
             except RuntimeError as e:
                 self.console.print(f"[bold red]Error:[/bold red] {e}")
                 return GameResult.IN_PROGRESS
+
+            # Wire up teaching advisor (analysis runs before each human move)
+            if match.teaching_advisor is not None:
+                self._pre_move_advisor = match.teaching_advisor.analyze
+                self.console.print(
+                    "[bold cyan]Teaching mode active![/bold cyan] "
+                    "[dim]LLM + Stockfish coaching will appear before each of your moves.[/dim]"
+                )
 
             # Run the match
             result: GameResult = await match.run()
@@ -334,6 +371,7 @@ class CLI:
                 self.console.print(Panel(match.game.to_pgn(), title="PGN"))
 
             self._current_match = None
+            self._pre_move_advisor = None
             return result
 
     async def run(self):

@@ -385,6 +385,54 @@ class BoardDisplay:
         self.print_game_stats(game)
         self.print_move_history(game)
 
+    def print_teaching_advice(self, advice: "TeachingAdvice"):  # type: ignore[name-defined]
+        """Print structured teaching advice from the coaching advisor.
+
+        Args:
+            advice: :class:`~chess_alive.llm.teaching.TeachingAdvice` returned
+                by :class:`~chess_alive.llm.teaching.TeachingAdvisor`.
+        """
+        from ..llm.teaching import TeachingAdvice  # local import to avoid circular
+
+        assert isinstance(advice, TeachingAdvice)
+
+        self.console.print(
+            Panel(
+                f"[bold]{advice.position_assessment}[/bold]",
+                title=f"[bold cyan]Teaching Coach — Move {advice.move_number} "
+                f"({advice.player_color} to move)[/bold cyan]",
+                border_style="cyan",
+            )
+        )
+
+        if not advice.candidate_moves:
+            return
+
+        table = Table(
+            title="Candidate Moves",
+            show_header=True,
+            header_style=Style(color="bright_cyan", bold=True),
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=3, justify="right")
+        table.add_column("Move", style="bold cyan", min_width=6)
+        table.add_column("Eval", style="yellow", min_width=8)
+        table.add_column("Why this move", style="white", min_width=20)
+        table.add_column("Likely opponent reply", style="red", min_width=20)
+        table.add_column("Your follow-up goal", style="green", min_width=20)
+
+        for i, candidate in enumerate(advice.candidate_moves, 1):
+            table.add_row(
+                str(i),
+                candidate.san,
+                candidate.evaluation,
+                candidate.explanation,
+                candidate.likely_response,
+                candidate.follow_up_plan,
+            )
+
+        self.console.print(table)
+
     def print_commentary(self, piece_name: str, text: str):
         """Print piece commentary."""
         self.console.print(
