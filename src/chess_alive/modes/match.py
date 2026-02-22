@@ -13,6 +13,7 @@ from ..players.computer import ComputerPlayer
 from ..players.llm_player import LLMPlayer
 from ..llm.client import LLMClient
 from ..llm.commentary import CommentaryEngine
+from ..llm.teaching import TeachingAdvisor
 from ..config import GameConfig
 
 
@@ -31,6 +32,7 @@ class MatchConfig:
     llm_style_white: str = "balanced"
     llm_style_black: str = "balanced"
     max_moves: int = 500  # Prevent infinite games
+    enable_teaching: bool = False  # LLM + Stockfish coaching before each human move
 
 
 @dataclass
@@ -67,6 +69,7 @@ class Match:
         self.white_player: Optional[Player] = None
         self.black_player: Optional[Player] = None
         self.commentary_engine: Optional[CommentaryEngine] = None
+        self.teaching_advisor: Optional[TeachingAdvisor] = None
         self.events: list[MatchEvent] = []
 
         self._llm_client: Optional[LLMClient] = None
@@ -118,6 +121,13 @@ class Match:
             self.commentary_engine = CommentaryEngine(
                 self._llm_client,
                 self.config.commentary_frequency,
+            )
+
+        # Set up teaching advisor if enabled
+        if (self.config.enable_teaching or self.config.mode == GameMode.TEACHING) and self._llm_client:
+            self.teaching_advisor = TeachingAdvisor(
+                self._llm_client,
+                self.game_config.engine,
             )
 
     async def _create_player(
@@ -308,6 +318,9 @@ class Match:
 
     async def _cleanup(self):
         """Clean up resources."""
+        if self.teaching_advisor:
+            await self.teaching_advisor.close()
+            self.teaching_advisor = None
         if self._llm_client:
             await self._llm_client.close()
             self._llm_client = None

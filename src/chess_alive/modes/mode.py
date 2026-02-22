@@ -56,6 +56,12 @@ _MODE_DEFAULTS: dict[str, ModeConfig] = {
         llm_style_white="balanced",
         stockfish_skill=15,
     ),
+    "TEACHING": ModeConfig(
+        commentary_frequency="key_moments",
+        stockfish_skill=15,
+        stockfish_depth=15,
+        max_moves=500,
+    ),
 }
 
 
@@ -80,6 +86,9 @@ class GameMode(Enum):
     # LLM vs Computer - LLM vs Stockfish
     LLM_VS_COMPUTER = auto()
 
+    # Teaching - Human plays vs Stockfish with LLM coaching before each move
+    TEACHING = auto()
+
     @property
     def description(self) -> str:
         """Get a human-readable description."""
@@ -90,6 +99,7 @@ class GameMode(Enum):
             GameMode.PLAYER_VS_LLM: "Human vs LLM-controlled player",
             GameMode.LLM_VS_LLM: "LLM vs LLM",
             GameMode.LLM_VS_COMPUTER: "LLM vs Stockfish chess engine",
+            GameMode.TEACHING: "Teaching mode — Human vs Stockfish with LLM coaching",
         }
         return descriptions.get(self, "Unknown mode")
 
@@ -108,6 +118,7 @@ class GameMode(Enum):
             GameMode.PLAYER_VS_LLM: PlayerType.HUMAN,
             GameMode.LLM_VS_LLM: PlayerType.LLM,
             GameMode.LLM_VS_COMPUTER: PlayerType.LLM,
+            GameMode.TEACHING: PlayerType.HUMAN,
         }
         return mapping[self]
 
@@ -121,6 +132,7 @@ class GameMode(Enum):
             GameMode.PLAYER_VS_LLM: PlayerType.LLM,
             GameMode.LLM_VS_LLM: PlayerType.LLM,
             GameMode.LLM_VS_COMPUTER: PlayerType.COMPUTER,
+            GameMode.TEACHING: PlayerType.COMPUTER,
         }
         return mapping[self]
 
@@ -151,12 +163,12 @@ class GameMode(Enum):
     @property
     def requires_stockfish(self) -> bool:
         """Check if this mode requires Stockfish."""
-        return self.has_computer
+        return self.has_computer or self == GameMode.TEACHING
 
     @property
     def requires_openrouter(self) -> bool:
         """Check if this mode requires OpenRouter API."""
-        return self.has_llm
+        return self.has_llm or self == GameMode.TEACHING
 
     @classmethod
     def from_string(cls, s: str) -> "GameMode":
@@ -177,6 +189,8 @@ class GameMode(Enum):
             "lvc": cls.LLM_VS_COMPUTER,
             "llm_vs_computer": cls.LLM_VS_COMPUTER,
             "llm_vs_comp": cls.LLM_VS_COMPUTER,
+            "teaching": cls.TEACHING,
+            "teach": cls.TEACHING,
         }
         key = s.lower().strip().replace("-", "_").replace(" ", "_")
         if key not in mapping:
