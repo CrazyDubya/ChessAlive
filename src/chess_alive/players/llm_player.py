@@ -9,14 +9,16 @@ import chess
 
 if TYPE_CHECKING:
     from ..llm.client import LLMClient
+    from ..llm.stockfish_advisor import StockfishAdvisor
 
 from .base import Player, PlayerType
 from ..core.game import ChessGame
 from ..core.piece import Color
+from ..config import EngineConfig
 
 
 class LLMPlayer(Player):
-    """Player that uses an LLM to decide chess moves."""
+    """Player that uses an LLM to decide chess moves, optionally guided by Stockfish."""
 
     def __init__(
         self,
@@ -24,6 +26,9 @@ class LLMPlayer(Player):
         name: Optional[str] = None,
         llm_client: Optional["LLMClient"] = None,
         style: str = "balanced",
+        stockfish_advisor: Optional["StockfishAdvisor"] = None,
+        use_stockfish_guidance: bool = True,
+        advisor_strength: str = "moderate",  # "minimal", "moderate", "strong"
     ):
         """
         Initialize an LLM player.
@@ -33,11 +38,20 @@ class LLMPlayer(Player):
             name: Optional player name
             llm_client: LLM client for making API calls
             style: Playing style hint ("aggressive", "defensive", "balanced", "creative")
+            stockfish_advisor: Optional Stockfish advisor for guidance
+            use_stockfish_guidance: Whether to use Stockfish guidance (default True)
+            advisor_strength: How strongly to emphasize Stockfish suggestions
+                - "minimal": Just show top moves, LLM fully decides
+                - "moderate": Show analysis with top moves (default)
+                - "strong": Emphasize best move but LLM still decides
         """
         super().__init__(color, name or f"LLM ({color.name_str})")
         self._client = llm_client
         self.style = style
         self._move_history_context: list[str] = []
+        self._advisor = stockfish_advisor
+        self._use_stockfish = use_stockfish_guidance
+        self._advisor_strength = advisor_strength
 
     @property
     def player_type(self) -> PlayerType:
@@ -47,16 +61,24 @@ class LLMPlayer(Player):
         """Set the LLM client."""
         self._client = client
 
+    def set_advisor(self, advisor: "StockfishAdvisor"):
+        """Set the Stockfish advisor."""
+        self._advisor = advisor
+
+    def set_advisor_strength(self, strength: str):
+        """Set how strongly to emphasize Stockfish suggestions."""
+        self._advisor_strength = strength
+
     async def get_move(self, game: ChessGame) -> Optional[chess.Move]:
-        """Get move from LLM."""
+        """Get move from LLM, optionally guided by Stockfish."""
         if game.current_turn != self.color:
             return None
 
         if self._client is None:
             raise RuntimeError("LLM client not configured for LLMPlayer")
 
-        # Build the prompt
-        prompt = self._build_move_prompt(game)
+        # Build the prompt (now async to support Stockfish analysis)
+        prompt = await self._build_move_prompt(game)
 
         # Get LLM response
         response = await self._client.complete(
@@ -117,8 +139,8 @@ If you cannot use JSON, format your response as: MOVE: <your move>
 
 Always choose a legal move from the provided list of legal moves."""
 
-    def _build_move_prompt(self, game: ChessGame) -> str:
-        """Build the prompt for getting a move."""
+    async def _build_move_prompt(self, game: ChessGame) -> str:
+        """Build the prompt for getting a move, optionally including Stockfish guidance."""
         # Get board state
         board_str = str(game.board)
 
@@ -148,6 +170,7 @@ Always choose a legal move from the provided list of legal moves."""
 
         state_str = " ".join(state_notes) if state_notes else ""
 
+        # Build base prompt
         prompt = f"""Current position (you are playing {self.color.name_str}):
 
 {board_str}
@@ -158,10 +181,33 @@ Move history: {move_history_str}
 
 Legal moves available: {', '.join(legal_moves)}
 
-{state_str}
+{state_str}"""
 
-It's your turn. Analyze the position and choose the best move.
-Respond with JSON: {{"move": "<SAN>", "reasoning": "<analysis>"}}"""
+        # Add Stockfish guidance if available
+        if self._use_stockfish and self._advisor:
+            try:
+                guidance = await self._advisor.analyze_position(game)
+                stockfish_context = self._advisor.format_guidance_for_llm(guidance)
+
+                # Adjust based on advisor strength
+                if self._advisor_strength == "minimal":
+                    # Just show top 3 moves
+                    if guidance.top_moves:
+                        top_moves = ", ".join([m.san for m in guidance.top_moves[:3]])
+                        prompt += f"\n\nStockfish suggests considering: {top_moves}"
+                elif self._advisor_strength == "strong":
+                    # Emphasize the best move
+                    prompt += f"\n\n{stockfish_context}"
+                    if guidance.top_moves and guidance.top_moves[0].is_best:
+                        prompt += f"\n\nThe best move appears to be {guidance.top_moves[0].san}. You may follow this or find something even better!"
+                else:  # moderate
+                    prompt += f"\n\n{stockfish_context}"
+
+            except Exception:
+                # If Stockfish fails, continue without guidance
+                pass
+
+        prompt += "\n\nIt's your turn. Analyze the position and choose the best move.\nRespond with JSON: {\"move\": \"<SAN>\", \"reasoning\": \"<analysis>\"}"
 
         return prompt
 
@@ -250,7 +296,7 @@ Respond with JSON: {{"move": "<SAN>", "reasoning": "<analysis>"}}"""
         if self._client is None:
             raise RuntimeError("LLM client not configured for LLMPlayer")
 
-        prompt = self._build_move_prompt(game) + """
+        prompt = await self._build_move_prompt(game) + """
 
 Please provide detailed reasoning for your move.
 Respond with JSON: {"move": "<SAN>", "reasoning": "<detailed analysis>"}"""

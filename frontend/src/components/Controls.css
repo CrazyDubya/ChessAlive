@@ -1,0 +1,106 @@
+.controls {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  min-width: 250px;
+}
+
+.controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.controls-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.connection-status {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.connection-status.connected {
+  background: #10b981;
+}
+
+.connection-status.disconnected {
+  background: #ef4444;
+}
+
+.controls-section {
+  margin-bottom: 15px;
+}
+
+.controls-section label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.controls-section select {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.controls-section input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.controls-section label:has(input[type="checkbox"]) {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.new-game-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.new-game-btn:hover:not(:disabled) {
+  background: #fbbf24;
+  transform: scale(1.02);
+}
+
+.new-game-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.new-game-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controls-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.controls-info p {
+  margin: 0;
+}

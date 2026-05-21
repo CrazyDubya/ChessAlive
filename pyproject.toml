@@ -14,6 +14,11 @@ dependencies = [
     "httpx>=0.25.0",
     "python-dotenv>=1.0.0",
     "rich>=13.0.0",
+    # API server for 3D frontend
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "websockets>=12.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -27,10 +32,16 @@ dev = [
 gui = [
     "pillow>=10.0.0",
 ]
+api = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "websockets>=12.0",
+]
 
 [project.scripts]
 chess-alive = "chess_alive.main:main"
 chess-alive-gui = "chess_alive.ui.gui:main"
+chess-alive-server = "chess_alive.api.server:run_server"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

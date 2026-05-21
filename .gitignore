@@ -48,3 +48,9 @@ coverage.xml
 # OS
 .DS_Store
 Thumbs.db
+
+# Rust/Tauri build cache (added 2026-05-20)
+frontend/src-tauri/target/
+frontend/node_modules/
+node_modules/
+*.dylib
